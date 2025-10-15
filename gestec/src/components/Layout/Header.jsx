@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -57,12 +57,7 @@ export default function Header() {
     { name: "Logout", link: "/user/logout", login: true },
   ];
   //Lista enlaces menu principal
-  const navItems = [
-    { name: "Peliculas", link: "/movie",roles:null },
-    { name: "Cátalogo de Peliculas", link: "/catalog-movies/", roles:null },
-    { name: "Filtrar Peliculas", link: "/movie/filter", roles:null },
-    { name: "Mantenimiento Peliculas", link: "/movie-table/", roles:null },
-  ];
+  const navItems = [];
   //Identificador menu principal
   const menuIdPrincipal = "menu-appbar";
   //Menu Principal
@@ -220,13 +215,13 @@ export default function Header() {
             {menuPrincipalMobile}
           </Menu>
           {/* Enlace página inicio */}
-          <Tooltip title="Alquiler peliculas">
+          <Tooltip title="Inicio">
             <IconButton
               size="large"
               edge="end"
               component="a"
               href="/"
-              aria-label="Alquiler peliculas"
+              aria-label="Inicio"
               color="primary"
             >
               <LiveTvIcon />
