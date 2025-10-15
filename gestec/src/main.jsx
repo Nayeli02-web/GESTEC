@@ -5,6 +5,10 @@ import App from "./App.jsx";
 import { createBrowserRouter } from "react-router-dom";
 import { Home } from "./components/Home/Home";
 import { RouterProvider } from "react-router";
+import HeaderAlt from "./components/Layout/HeaderAlt";
+import FooterAlt from "./components/Layout/FooterAlt";
+import HomeTec from "./components/Home/HomeTec";
+
 const rutas=createBrowserRouter(
   [
     {
@@ -14,6 +18,16 @@ const rutas=createBrowserRouter(
           path:'/',
           element: <Home />
         },
+        {
+          path: '/home-tecnico',
+          element: (
+            <>
+              <HeaderAlt />
+              <HomeTec />
+              <FooterAlt />
+            </>
+          )
+        }
       ]
     }
   ]
