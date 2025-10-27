@@ -3,7 +3,7 @@
 require_once 'vendor/autoload.php';
 /*Encabezada de las solicitudes*/
 /*CORS*/
-header("Access-Control-Allow-Origin: * ");
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: *");
 header("Access-Control-Allow-Methods: *");
 header('Content-Type: application/json');
@@ -20,16 +20,19 @@ require_once "controllers/core/Response.php";
 require_once "models/RolModel.php";
 require_once "models/UserModel.php";
 require_once "models/TecnicoModel.php";
-
+require_once "models/CategoriaModel.php";
+require_once "models/TicketModel.php";
 
 /***--- Agregar todos los controladores*/
 require_once "controllers/DirectorController.php";
 require_once "controllers/TecnicoController.php";
+require_once "controllers/CategoriaController.php";
+require_once "controllers/TicketController.php";
 
 
 //Enrutador
 require_once "routes/RoutesController.php";
 $index = new RoutesController();
-$index->index();
+$index->routes();
 
 

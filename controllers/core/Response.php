@@ -12,17 +12,21 @@ class Response
     
     public function toJSON($response = [],$message="")
     {
-        //Verificar respuesta
+        header('Content-Type: application/json');
+
+        // Verificar y preparar la respuesta
         if (isset($response) && !empty($response)) {
             $json = $response;
         } else {
-            $this->status =400;
-            $json =  $message ?? "No se efectuo la solicitud";
+            if (!empty($message)) {
+                $json = ['status' => $this->status, 'result' => $message];
+            } else {
+                $this->status = 400;
+                $json = ['status' => $this->status, 'result' => 'No se efectuó la solicitud'];
+            }
         }
-        //Escribir respuesta JSON con código de estado HTTP
-        echo json_encode(
-            $json,
-            http_response_code($this->status)
-        );
+
+        http_response_code($this->status);
+        echo json_encode($json);
     }
 }

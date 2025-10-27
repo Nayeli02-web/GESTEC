@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import TecnicoService from '../../services/TecnicoService';
+import CategoriaService from '../../services/CategoriaService';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -12,15 +12,16 @@ import Avatar from '@mui/material/Avatar';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import CircularProgress from '@mui/material/CircularProgress';
+import CategoryIcon from '@mui/icons-material/Category';
 
-export default function ListTecnicos() {
+export default function ListCategorias() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let mounted = true;
-    TecnicoService.getAll()
+    CategoriaService.getAll()
       .then((res) => {
         const list = Array.isArray(res) ? res : (res?.data || res || []);
         if (mounted) setData(list);
@@ -34,25 +35,29 @@ export default function ListTecnicos() {
     <Container maxWidth="md" sx={{ mt: 3 }}>
       <Paper sx={{ p: 2 }} elevation={2}>
         <Typography variant="h5" component="h2" gutterBottom>
-          Técnicos
+          Categorías
         </Typography>
 
         {loading ? (
           <CircularProgress />
         ) : error ? (
-          <Typography color="error">Error al cargar técnicos</Typography>
+          <Typography color="error">Error al cargar categorías</Typography>
+        ) : data.length === 0 ? (
+          <Typography color="text.secondary">No hay categorías registradas</Typography>
         ) : (
           <List>
-            {data.map((t, idx) => (
-              <div key={t.id || idx}>
+            {data.map((categoria, idx) => (
+              <div key={categoria.id || idx}>
                 <ListItem disablePadding>
-                  <ListItemButton component={RouterLink} to={`/tecnico/${t.id}`}>
+                  <ListItemButton component={RouterLink} to={`/categoria/${categoria.id}`}>
                     <ListItemAvatar>
-                      <Avatar>{(t.nombre || '').split(' ').map(n=>n[0]).slice(0,2).join('')}</Avatar>
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        <CategoryIcon />
+                      </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={t.nombre}
-                      secondary={`${t.correo} — ${t.telefono}`}
+                      primary={categoria.nombre}
+                      secondary={categoria.descripcion || 'Sin descripción'}
                     />
                   </ListItemButton>
                 </ListItem>

@@ -56,8 +56,11 @@ export default function Header() {
     { name: "Registrarse", link: "/user/create", login: false },
     { name: "Logout", link: "/user/logout", login: true },
   ];
-  //Lista enlaces menu principal
-  const navItems = [];
+  //Lista enlaces menu principal 
+  const navItems = [
+    { name: 'Técnicos', link: '/tecnicos' },
+    { name: 'Categorías', link: '/categorias' }
+  ];
   //Identificador menu principal
   const menuIdPrincipal = "menu-appbar";
   //Menu Principal

@@ -12,4 +12,33 @@ export default defineConfig({
       '@mui/material/Tooltip'
     ],
   },
+  server: {
+    proxy: {
+      // Proxy API requests to local PHP backend project folder
+      '/tecnico': {
+        target: 'http://localhost:81/GESTEC',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/tecnico/, '/tecnico')
+      },
+      '/categoria': {
+        target: 'http://localhost:81/GESTEC',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/categoria/, '/categoria')
+      },
+      '/ticket': {
+        target: 'http://localhost:81/GESTEC',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/ticket/, '/ticket')
+      },
+      '/uploads': {
+        target: 'http://localhost:81/GESTEC',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/uploads/, '/uploads')
+      }
+    }
+  }
 })

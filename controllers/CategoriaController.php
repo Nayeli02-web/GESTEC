@@ -1,50 +1,37 @@
 <?php
 /**
- * Controlador para la gestión de técnicos en el sistema de soporte técnico.
+ * Controlador para la gestión de categorías en el sistema de soporte técnico.
  * Incluye operaciones CRUD: listar, obtener, crear y actualizar.
  */
-class TecnicoController
+class CategoriaController
 {
-    // GET listar todos los técnicos
+    // GET listar todas las categorías
     public function index()
     {
         try {
             $response = new Response();
-            $tecnicoM = new TecnicoModel();
-            $result = $tecnicoM->all();
+            $categoriaM = new CategoriaModel();
+            $result = $categoriaM->all();
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
 
-    // GET obtener un técnico por ID
+    // GET obtener una categoría por ID
     public function get($id)
     {
         try {
             $response = new Response();
-            $tecnico = new TecnicoModel();
-            $result = $tecnico->get($id);
+            $categoria = new CategoriaModel();
+            $result = $categoria->get($id);
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
 
-    // GET detalle completo de un técnico con especialidades y carga de trabajo
-    public function detalle($id)
-    {
-        try {
-            $response = new Response();
-            $tecnico = new TecnicoModel();
-            $result = $tecnico->getDetalle($id);
-            $response->toJSON($result);
-        } catch (Exception $e) {
-            handleException($e);
-        }
-    }
-
-    // POST crear un técnico
+    // POST crear una nueva categoría
     public function create()
     {
         try {
@@ -52,15 +39,15 @@ class TecnicoController
             $response = new Response();
             $inputJSON = $request->getJSON();
 
-            $tecnico = new TecnicoModel();
-            $result = $tecnico->create($inputJSON);
+            $categoria = new CategoriaModel();
+            $result = $categoria->create($inputJSON);
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
 
-    // PUT actualizar técnico
+    // PUT actualizar categoría existente
     public function update()
     {
         try {
@@ -68,12 +55,25 @@ class TecnicoController
             $response = new Response();
             $inputJSON = $request->getJSON();
 
-            $tecnico = new TecnicoModel();
-            $result = $tecnico->update($inputJSON);
+            $categoria = new CategoriaModel();
+            $result = $categoria->update($inputJSON);
             $response->toJSON($result);
         } catch (Exception $e) {
             handleException($e);
         }
     }
+
+    // GET detalle completo de una categoría
+    public function detalle($id)
+    {
+       try {
+          $response = new Response();
+          $categoria = new CategoriaModel();
+          $result = $categoria->getDetalle($id);
+          $response->toJSON($result);
+        } catch (Exception $e) {
+         handleException($e);
+        }
+    } 
 
 }
