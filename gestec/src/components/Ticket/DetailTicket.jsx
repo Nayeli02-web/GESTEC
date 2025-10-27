@@ -17,8 +17,6 @@ import Rating from '@mui/material/Rating';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import Alert from '@mui/material/Alert';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -47,6 +45,12 @@ export default function DetailTicket() {
       .finally(() => setLoading(false));
     return () => (mounted = false);
   }, [id]);
+
+  // Formatear tiempo 
+  const formatearTiempo = (horas) => {
+    if (!horas) return 'N/A';
+    return `${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+  };
 
   const getPrioridadColor = (prioridad) => {
     switch (prioridad?.toLowerCase()) {
@@ -219,51 +223,13 @@ export default function DetailTicket() {
                         <Typography variant="body2" color="text.secondary">
                           SLA Respuesta
                         </Typography>
-                        <Typography variant="h6">{ticket.sla.tiempo_respuesta} min</Typography>
-                        {ticket.cumplimiento_respuesta && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-                            {ticket.cumplimiento_respuesta === 'Cumplido' ? (
-                              <>
-                                <CheckCircleIcon color="success" fontSize="small" />
-                                <Typography variant="body2" color="success.main">
-                                  {ticket.cumplimiento_respuesta}
-                                </Typography>
-                              </>
-                            ) : (
-                              <>
-                                <CancelIcon color="error" fontSize="small" />
-                                <Typography variant="body2" color="error.main">
-                                  {ticket.cumplimiento_respuesta}
-                                </Typography>
-                              </>
-                            )}
-                          </Box>
-                        )}
+                        <Typography variant="h6">{formatearTiempo(ticket.sla.tiempo_respuesta)}</Typography>
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <Typography variant="body2" color="text.secondary">
                           SLA Resolución
                         </Typography>
-                        <Typography variant="h6">{ticket.sla.tiempo_resolucion} min</Typography>
-                        {ticket.cumplimiento_resolucion && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-                            {ticket.cumplimiento_resolucion === 'Cumplido' ? (
-                              <>
-                                <CheckCircleIcon color="success" fontSize="small" />
-                                <Typography variant="body2" color="success.main">
-                                  {ticket.cumplimiento_resolucion}
-                                </Typography>
-                              </>
-                            ) : (
-                              <>
-                                <CancelIcon color="error" fontSize="small" />
-                                <Typography variant="body2" color="error.main">
-                                  {ticket.cumplimiento_resolucion}
-                                </Typography>
-                              </>
-                            )}
-                          </Box>
-                        )}
+                        <Typography variant="h6">{formatearTiempo(ticket.sla.tiempo_resolucion)}</Typography>
                       </Grid>
                     </Grid>
                   </CardContent>
@@ -340,35 +306,41 @@ export default function DetailTicket() {
             )}
 
             {/* Valoración */}
-            {ticket.valoracion && (
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom color="primary">
-                      Valoración del Servicio
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                      <Rating 
-                        value={parseInt(ticket.valoracion.puntuacion)} 
-                        readOnly 
-                        size="large"
-                      />
-                      <Typography variant="h6">
-                        {ticket.valoracion.puntuacion}/5
+            <Grid item xs={12}>
+              <Card elevation={2}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom color="primary">
+                    Valoración del Servicio
+                  </Typography>
+                  {ticket.valoracion ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Rating 
+                          value={parseInt(ticket.valoracion.puntuacion)} 
+                          readOnly 
+                          size="large"
+                        />
+                        <Typography variant="h6">
+                          {ticket.valoracion.puntuacion}/5
+                        </Typography>
+                      </Box>
+                      {ticket.valoracion.comentario && (
+                        <Typography variant="body1" color="text.secondary">
+                          {ticket.valoracion.comentario}
+                        </Typography>
+                      )}
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                        Valorado el: {new Date(ticket.valoracion.fecha).toLocaleString()}
                       </Typography>
-                    </Box>
-                    {ticket.valoracion.comentario && (
-                      <Typography variant="body1" color="text.secondary">
-                        {ticket.valoracion.comentario}
-                      </Typography>
-                    )}
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                      Valorado el: {new Date(ticket.valoracion.fecha).toLocaleString()}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
+                    </>
+                  ) : (
+                    <Alert severity="info">
+                      Este ticket aún no ha sido valorado por el cliente.
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
         </>
       )}

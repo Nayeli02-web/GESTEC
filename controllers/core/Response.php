@@ -13,9 +13,8 @@ class Response
     public function toJSON($response = [],$message="")
     {
         header('Content-Type: application/json');
-
-        // Verificar y preparar la respuesta
-        if (isset($response) && !empty($response)) {
+        
+        if (isset($response) && ($response !== null && $response !== false)) {
             $json = $response;
         } else {
             if (!empty($message)) {

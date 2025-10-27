@@ -121,7 +121,7 @@ export default function AsignacionesTecnico() {
     return { porcentaje: 20, color: 'success', texto: '6 hrs' };
   };
 
-  // Generar opciones de semanas (últimas 4 semanas + semana actual)
+  // Generar opciones de semanas 
   const generarOpcionesSemanas = () => {
     const semanas = [{ value: 'todas', label: 'Todas las semanas' }];
     const hoy = new Date();

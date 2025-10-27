@@ -48,6 +48,27 @@ CREATE TABLE categorias (
   descripcion VARCHAR(255)
 );
 
+-- === ETIQUETAS ===
+CREATE TABLE etiquetas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  categoria_id INT,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
+);
+
+-- === Relación Categoría ↔ Especialidad (muchos a muchos)
+CREATE TABLE categoria_especialidad (
+  categoria_id INT NOT NULL,
+  especialidad_id INT NOT NULL,
+  PRIMARY KEY (categoria_id, especialidad_id),
+  FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE,
+  FOREIGN KEY (especialidad_id) REFERENCES especialidades(id) ON DELETE CASCADE
+);
+
+-- === Relación Categoría ↔ SLA (uno a uno)
+ALTER TABLE categorias ADD COLUMN sla_id INT;
+ALTER TABLE categorias ADD FOREIGN KEY (sla_id) REFERENCES sla(id);
+
 -- === SLA (Tiempos de respuesta y resolución) ===
 CREATE TABLE sla (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -138,3 +159,171 @@ CREATE TABLE imagenes (
   FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
 );
 
+-- Desactivar restricciones temporales
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Vaciar todas las tablas
+TRUNCATE TABLE imagenes;
+TRUNCATE TABLE valoraciones;
+TRUNCATE TABLE historial_tickets;
+TRUNCATE TABLE asignaciones;
+TRUNCATE TABLE notificaciones;
+TRUNCATE TABLE tickets;
+TRUNCATE TABLE tecnico_especialidad;
+TRUNCATE TABLE tecnicos;
+TRUNCATE TABLE categoria_especialidad;
+TRUNCATE TABLE etiquetas;
+TRUNCATE TABLE categorias;
+TRUNCATE TABLE especialidades;
+TRUNCATE TABLE usuarios;
+TRUNCATE TABLE roles;
+TRUNCATE TABLE sla;
+TRUNCATE TABLE reglas_autotriage;
+
+-- Reactivar restricciones
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- =========================================================
+-- ROLES
+-- =========================================================
+INSERT INTO roles (nombre) VALUES 
+('Administrador'),
+('Cliente'),
+('Técnico');
+
+-- =========================================================
+-- USUARIOS
+-- =========================================================
+INSERT INTO usuarios (nombre, correo, contrasena, telefono, rol_id) VALUES
+('María López', 'maria@correo.com', '12345', '8888-1111', 2), -- cliente
+('Carlos Jiménez', 'carlos@correo.com', '12345', '8888-2222', 2),
+('Ana Torres', 'ana@correo.com', '12345', '8888-3333', 2),
+('Pedro Sánchez', 'pedro@correo.com', '12345', '8888-4444', 3), -- técnico
+('Laura Méndez', 'laura@correo.com', '12345', '8888-5555', 3),
+('José Vega', 'jose@correo.com', '12345', '8888-6666', 3),
+('Admin Root', 'admin@correo.com', '12345', '8888-0000', 1);
+
+-- =========================================================
+-- TÉCNICOS
+-- =========================================================
+INSERT INTO tecnicos (usuario_id, disponible) VALUES
+(4, 1),
+(5, 1),
+(6, 0),
+(7,0);
+
+-- =========================================================
+-- ESPECIALIDADES
+-- =========================================================
+INSERT INTO especialidades (nombre) VALUES
+('Redes'),
+('Hardware'),
+('Software');
+
+
+-- Relación técnico ↔ especialidad
+INSERT INTO tecnico_especialidad (tecnico_id, especialidad_id) VALUES
+(1, 1),
+(1, 2),
+(2, 3),
+(3, 1);
+
+-- =========================================================
+-- SLA
+-- =========================================================
+INSERT INTO sla (nombre, tiempo_respuesta, tiempo_resolucion) VALUES
+('Crítico', 1, 4),
+('Normal', 4, 24),
+('Bajo', 8, 48),
+('Crítico', 1, 15),
+('Bajo', 8, 10);
+
+-- =========================================================
+-- CATEGORÍAS
+-- =========================================================
+INSERT INTO categorias (nombre, descripcion, sla_id) VALUES
+('Red de Oficina', 'Problemas de conectividad interna', 1),
+('Equipos de Cómputo', 'Fallas físicas o lógicas de equipos', 2),
+('Aplicaciones', 'Errores en sistemas o software', 3),
+('Correo Electrónico', 'Fallas en envío o recepción de correos institucionales, configuración de Outlook o Webmail.', 4),
+('Seguridad Informática', 'Casos de virus, malware, alertas de seguridad o bloqueos de acceso no autorizado.', 5);
+
+-- ETIQUETAS
+INSERT INTO etiquetas (nombre, categoria_id) VALUES
+('WiFi', 1),
+('Switch', 1),
+('Laptop', 2),
+('Impresora', 2),
+('ERP', 3),
+('Correo', 3);
+
+-- Relación categoría ↔ especialidad
+INSERT INTO categoria_especialidad (categoria_id, especialidad_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 2),
+(5,1);
+
+-- =========================================================
+-- TICKETS
+-- =========================================================
+INSERT INTO tickets (titulo, descripcion, prioridad, estado, cliente_id, tecnico_id, categoria_id, sla_id, fecha_creacion, fecha_cierre) VALUES
+('Falla de red en oficina', 'No hay conexión a internet en el edificio A.', 'alta', 'resuelto', 1, 1, 1, 1, '2025-10-01 09:00:00', '2025-10-01 12:30:00'),
+('Error en software ERP', 'El sistema no carga el módulo de facturación.', 'media', 'en_proceso', 2, 2, 3, 3, '2025-10-02 10:00:00', NULL),
+('Laptop no enciende', 'Equipo del área de contabilidad no responde al encender.', 'alta', 'cerrado', 3, 3, 2, 2, '2025-10-03 08:15:00', '2025-10-04 15:00:00'),
+('Correo no sincroniza', 'No se actualizan los correos en Outlook.', 'baja', 'pendiente', 1, NULL, 3, 3, '2025-10-04 10:00:00', NULL);
+
+-- =========================================================
+-- HISTORIAL DE TICKETS
+-- =========================================================
+INSERT INTO historial_tickets (ticket_id, estado_anterior, estado_nuevo, observacion, fecha) VALUES
+(1, 'pendiente', 'asignado', 'Asignado a técnico Pedro Sánchez', '2025-10-01 09:10:00'),
+(1, 'asignado', 'en_proceso', 'Se revisó el router principal', '2025-10-01 10:00:00'),
+(1, 'en_proceso', 'resuelto', 'Se reemplazó cableado dañado', '2025-10-01 12:00:00'),
+(2, 'pendiente', 'asignado', 'Asignado a Laura Méndez', '2025-10-02 10:30:00'),
+(2, 'asignado', 'en_proceso', 'Revisión del módulo ERP en curso', '2025-10-02 13:00:00'),
+(3, 'pendiente', 'asignado', 'Asignado a José Vega', '2025-10-03 09:00:00'),
+(3, 'asignado', 'en_proceso', 'Se cambió fuente de poder', '2025-10-03 13:00:00'),
+(3, 'en_proceso', 'resuelto', 'Equipo encendió correctamente', '2025-10-04 11:00:00'),
+(3, 'resuelto', 'cerrado', 'Confirmado por el usuario', '2025-10-04 15:00:00');
+
+-- =========================================================
+-- IMÁGENES
+-- =========================================================
+INSERT INTO imagenes (ticket_id, nombre_archivo, ruta) VALUES
+(1,'router_danado.png', '/uploads/router_danado.png'),
+(2,'equipo_ok.jpg', '/uploads/equipo_ok.png'),
+(3,'erp.jpg', '/uploads/erp.jpg'),
+(4, 'correo.jpg', '/uploads/correo.jpg');
+
+-- =========================================================
+-- VALORACIONES
+-- =========================================================
+INSERT INTO valoraciones (ticket_id, puntuacion, comentario, fecha) VALUES
+(1, 5, 'Excelente atención y rápida solución.', '2025-10-02 08:00:00'),
+(3, 4, 'Buen servicio, aunque tomó más tiempo del esperado.', '2025-10-05 09:00:00');
+
+-- =========================================================
+-- ASIGNACIONES
+-- =========================================================
+INSERT INTO asignaciones (ticket_id, tecnico_id, metodo) VALUES
+(1, 1, 'automatica'),
+(2, 2, 'manual'),
+(3, 3, 'manual');
+
+-- =========================================================
+-- NOTIFICACIONES
+-- =========================================================
+INSERT INTO notificaciones (usuario_id, tipo, mensaje, leida, fecha) VALUES
+(1, 'estado', 'Su ticket #1 ha sido resuelto', 0, NOW()),
+(2, 'asignacion', 'Se le ha asignado un nuevo ticket', 1, NOW()),
+(4, 'mensaje', 'Nuevo comentario en el ticket #2', 0, NOW());
+
+-- =========================================================
+-- REGLAS DE AUTOTRIAGE
+-- =========================================================
+INSERT INTO reglas_autotriage (nombre, descripcion, activa) VALUES
+('Alta prioridad en red', 'Asignar automáticamente tickets de red con prioridad alta.', 1),
+('Priorizar software', 'Asignar técnicos de software para categorías ERP.', 1),
+('Equipo crítico', 'Tickets con prioridad alta deben notificarse al admin.', 1);

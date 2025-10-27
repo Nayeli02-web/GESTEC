@@ -40,6 +40,12 @@ export default function DetailCategoria() {
     return () => (mounted = false);
   }, [id]);
 
+  // Formatear tiempo 
+  const formatearTiempo = (horas) => {
+    if (!horas) return 'N/A';
+    return `${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
       <Button
@@ -174,7 +180,7 @@ export default function DetailCategoria() {
                             Tiempo Máximo de Respuesta
                           </Typography>
                           <Typography variant="h6" color="success.main" sx={{ fontWeight: 600 }}>
-                            {categoria.sla.tiempo_respuesta_minutos} minutos
+                            {formatearTiempo(categoria.sla.tiempo_respuesta_minutos)}
                           </Typography>
                         </Paper>
                       </Grid>
@@ -185,7 +191,7 @@ export default function DetailCategoria() {
                             Tiempo Máximo de Resolución
                           </Typography>
                           <Typography variant="h6" color="warning.main" sx={{ fontWeight: 600 }}>
-                            {categoria.sla.tiempo_resolucion_minutos} minutos
+                            {formatearTiempo(categoria.sla.tiempo_resolucion_minutos)}
                           </Typography>
                         </Paper>
                       </Grid>

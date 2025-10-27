@@ -47,7 +47,12 @@ class TicketModel
             } elseif ($rol === 'tecnico') {
                 // Buscar el técnico asociado al usuario
                 $tecnico = $this->enlace->ExecuteSQL("SELECT id FROM tecnicos WHERE usuario_id = $usuario_id", 'asoc');
-                if (empty($tecnico)) return [];
+                
+                
+                if (empty($tecnico)) {
+                    return [];
+                }
+                
                 $tecnico_id = $tecnico[0]['id'];
 
                 $vSql = "SELECT t.id, t.titulo, t.prioridad, t.estado, t.fecha_creacion,
@@ -60,7 +65,7 @@ class TicketModel
                          WHERE t.tecnico_id = $tecnico_id
                          ORDER BY t.fecha_creacion DESC";
             } else {
-            
+                
                 return [];
             }
 
@@ -122,6 +127,7 @@ class TicketModel
                         -- Categoría
                         c.id AS categoria_id, c.nombre AS categoria_nombre,
                         -- SLA
+                        s.nombre AS sla_nombre,
                         s.tiempo_respuesta AS sla_respuesta_minutos,
                         s.tiempo_resolucion AS sla_resolucion_minutos
                      FROM tickets t
@@ -244,6 +250,7 @@ class TicketModel
                     'nombre' => $ticket['categoria_nombre']
                 ] : null,
                 'sla' => [
+                    'nombre' => $ticket['sla_nombre'],
                     'tiempo_respuesta' => $ticket['sla_respuesta_minutos'],
                     'tiempo_resolucion' => $ticket['sla_resolucion_minutos']
                 ],
