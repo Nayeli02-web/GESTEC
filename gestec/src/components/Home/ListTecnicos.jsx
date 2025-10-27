@@ -12,6 +12,9 @@ import Avatar from '@mui/material/Avatar';
 import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import CircularProgress from '@mui/material/CircularProgress';
+import IconButton from '@mui/material/IconButton';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import Tooltip from '@mui/material/Tooltip';
 
 export default function ListTecnicos() {
   const [data, setData] = useState([]);
@@ -45,13 +48,29 @@ export default function ListTecnicos() {
           <List>
             {data.map((t, idx) => (
               <div key={t.id || idx}>
-                <ListItem disablePadding>
+                <ListItem 
+                  disablePadding
+                  secondaryAction={
+                    <Tooltip title="Ver detalle">
+                      <IconButton 
+                        edge="end" 
+                        component={RouterLink} 
+                        to={`/tecnico/${t.id}`}
+                        color="primary"
+                      >
+                        <ArrowForwardIcon />
+                      </IconButton>
+                    </Tooltip>
+                  }
+                >
                   <ListItemButton component={RouterLink} to={`/tecnico/${t.id}`}>
                     <ListItemAvatar>
-                      <Avatar>{(t.nombre || '').split(' ').map(n=>n[0]).slice(0,2).join('')}</Avatar>
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        {(t.nombre || '').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                      </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={t.nombre}
+                      primary={<Typography variant="h6" color="primary">{t.nombre}</Typography>}
                       secondary={`${t.correo} — ${t.telefono}`}
                     />
                   </ListItemButton>

@@ -13,6 +13,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Divider from '@mui/material/Divider';
 import CircularProgress from '@mui/material/CircularProgress';
 import CategoryIcon from '@mui/icons-material/Category';
+import IconButton from '@mui/material/IconButton';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import Tooltip from '@mui/material/Tooltip';
 
 export default function ListCategorias() {
   const [data, setData] = useState([]);
@@ -48,7 +51,21 @@ export default function ListCategorias() {
           <List>
             {data.map((categoria, idx) => (
               <div key={categoria.id || idx}>
-                <ListItem disablePadding>
+                <ListItem 
+                  disablePadding
+                  secondaryAction={
+                    <Tooltip title="Ver detalle">
+                      <IconButton 
+                        edge="end" 
+                        component={RouterLink} 
+                        to={`/categoria/${categoria.id}`}
+                        color="primary"
+                      >
+                        <ArrowForwardIcon />
+                      </IconButton>
+                    </Tooltip>
+                  }
+                >
                   <ListItemButton component={RouterLink} to={`/categoria/${categoria.id}`}>
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -56,7 +73,7 @@ export default function ListCategorias() {
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={categoria.nombre}
+                      primary={<Typography variant="h6" color="primary">{categoria.nombre}</Typography>}
                       secondary={categoria.descripcion || 'Sin descripción'}
                     />
                   </ListItemButton>
