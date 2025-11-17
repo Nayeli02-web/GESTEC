@@ -13,6 +13,7 @@ import TableRow from '@mui/material/TableRow';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
+import AddIcon from '@mui/icons-material/Add';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
@@ -74,8 +75,17 @@ export default function ListTickets() {
             Tickets
           </Typography>
           
-          {/* Selector de Rol (solo para desarrollo/pruebas) */}
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              component={RouterLink}
+              to="/ticket/crear"
+            >
+              Crear Ticket
+            </Button>
+            
+            {/* Selector de Rol (solo para desarrollo/pruebas) */}
             <TextField
               label="Usuario ID"
               value={usuarioId}

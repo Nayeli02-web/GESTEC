@@ -8,6 +8,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EditIcon from '@mui/icons-material/Edit';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -51,13 +52,23 @@ export default function DetailTecnico() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/tecnicos')}
-        sx={{ mb: 2 }}
-      >
-        Volver a Técnicos
-      </Button>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/tecnicos')}
+          variant="outlined"
+        >
+          Volver a Técnicos
+        </Button>
+        <Button
+          startIcon={<EditIcon />}
+          onClick={() => navigate(`/tecnico/${id}/editar`)}
+          variant="contained"
+          color="primary"
+        >
+          Editar Técnico
+        </Button>
+      </Box>
 
       {loading ? (
         <Paper sx={{ p: 3 }}>
@@ -90,9 +101,9 @@ export default function DetailTecnico() {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Chip 
-                    icon={tecnico.disponible ? <CheckCircleIcon /> : <CancelIcon />}
-                    label={tecnico.disponible ? 'Disponible' : 'No Disponible'} 
-                    color={tecnico.disponible ? 'success' : 'error'}
+                    icon={Number(tecnico.disponible) === 1 ? <CheckCircleIcon /> : <CancelIcon />}
+                    label={Number(tecnico.disponible) === 1 ? 'Disponible' : 'No Disponible'} 
+                    color={Number(tecnico.disponible) === 1 ? 'success' : 'error'}
                     size="small"
                   />
                   <Chip 
@@ -172,9 +183,9 @@ export default function DetailTecnico() {
                       Estado de disponibilidad
                     </Typography>
                     <Chip 
-                      icon={tecnico.disponible ? <CheckCircleIcon /> : <CancelIcon />}
-                      label={tecnico.disponible ? 'Disponible para asignación' : 'No disponible'} 
-                      color={tecnico.disponible ? 'success' : 'error'}
+                      icon={Number(tecnico.disponible) === 1 ? <CheckCircleIcon /> : <CancelIcon />}
+                      label={Number(tecnico.disponible) === 1 ? 'Disponible para asignación' : 'No disponible'} 
+                      color={Number(tecnico.disponible) === 1 ? 'success' : 'error'}
                       sx={{ mt: 1 }}
                     />
                   </Box>

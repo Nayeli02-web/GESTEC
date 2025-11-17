@@ -15,6 +15,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Tooltip from '@mui/material/Tooltip';
+import Button from '@mui/material/Button';
+import AddIcon from '@mui/icons-material/Add';
+import Box from '@mui/material/Box';
 
 export default function ListTecnicos() {
   const [data, setData] = useState([]);
@@ -36,9 +39,19 @@ export default function ListTecnicos() {
   return (
     <Container maxWidth="md" sx={{ mt: 3 }}>
       <Paper sx={{ p: 2 }} elevation={2}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          Técnicos
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" component="h2">
+            Técnicos
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            component={RouterLink}
+            to="/tecnico/crear"
+          >
+            Crear Técnico
+          </Button>
+        </Box>
 
         {loading ? (
           <CircularProgress />

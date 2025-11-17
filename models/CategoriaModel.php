@@ -44,16 +44,60 @@ class CategoriaModel
     public function create($datos)
     {
         try {
-            $nombre = addslashes($datos->nombre);
+            $nombre = addslashes($datos->nombre ?? '');
             $descripcion = addslashes($datos->descripcion ?? '');
+            $sla_id = isset($datos->sla_id) && $datos->sla_id > 0 ? (int)$datos->sla_id : null;
+            
+            // Si se proporcionan tiempos personalizados, crear un nuevo SLA
+            if (isset($datos->tiempo_respuesta) && isset($datos->tiempo_resolucion)) {
+                $tiempo_respuesta = (int)$datos->tiempo_respuesta;
+                $tiempo_resolucion = (int)$datos->tiempo_resolucion;
+                
+                // Crear SLA personalizado
+                $nombreSLA = "SLA - " . $nombre;
+                $vSqlSLA = "INSERT INTO sla (nombre, tiempo_respuesta, tiempo_resolucion) 
+                           VALUES ('$nombreSLA', $tiempo_respuesta, $tiempo_resolucion)";
+                $sla_id = $this->enlace->executeSQL_DML_last($vSqlSLA);
+            }
 
-            $vSql = "INSERT INTO categorias (nombre, descripcion) 
-                     VALUES ('$nombre', '$descripcion')";
+            // Insertar categoría
+            $vSql = "INSERT INTO categorias (nombre, descripcion, sla_id) 
+                     VALUES ('$nombre', '$descripcion', " . ($sla_id ? $sla_id : "NULL") . ")";
             $idNuevo = $this->enlace->executeSQL_DML_last($vSql);
 
-            return $this->get($idNuevo);
+            // Asociar etiquetas
+            if (isset($datos->etiquetas) && is_array($datos->etiquetas)) {
+                foreach ($datos->etiquetas as $etiqueta_id) {
+                    $etiqueta_id = (int)$etiqueta_id;
+                    // Actualizar la etiqueta para asociarla con esta categoría
+                    $vSqlEtiq = "UPDATE etiquetas SET categoria_id = $idNuevo WHERE id = $etiqueta_id";
+                    $this->enlace->executeSQL_DML($vSqlEtiq);
+                }
+            }
+
+            // Asociar especialidades
+            if (isset($datos->especialidades) && is_array($datos->especialidades)) {
+                foreach ($datos->especialidades as $especialidad_id) {
+                    $esp_id = (int)$especialidad_id;
+                    $vSqlEsp = "INSERT INTO categoria_especialidad (categoria_id, especialidad_id) 
+                               VALUES ($idNuevo, $esp_id)";
+                    $this->enlace->executeSQL_DML($vSqlEsp);
+                }
+            } elseif (isset($datos->especialidades) && is_object($datos->especialidades)) {
+                // Convertir objeto a array
+                $especialidades = array_values((array)$datos->especialidades);
+                foreach ($especialidades as $especialidad_id) {
+                    $esp_id = (int)$especialidad_id;
+                    $vSqlEsp = "INSERT INTO categoria_especialidad (categoria_id, especialidad_id) 
+                               VALUES ($idNuevo, $esp_id)";
+                    $this->enlace->executeSQL_DML($vSqlEsp);
+                }
+            }
+
+            return $this->getDetalle($idNuevo);
         } catch (Exception $e) {
             handleException($e);
+            return null;
         }
     }
 
@@ -66,16 +110,72 @@ class CategoriaModel
             $id = (int) $datos->id;
             $nombre = addslashes($datos->nombre ?? '');
             $descripcion = addslashes($datos->descripcion ?? '');
+            $sla_id = isset($datos->sla_id) && $datos->sla_id > 0 ? (int)$datos->sla_id : null;
+            
+            // Si se proporcionan tiempos personalizados, crear un nuevo SLA
+            if (isset($datos->tiempo_respuesta) && isset($datos->tiempo_resolucion)) {
+                $tiempo_respuesta = (int)$datos->tiempo_respuesta;
+                $tiempo_resolucion = (int)$datos->tiempo_resolucion;
+                
+                // Crear SLA personalizado
+                $nombreSLA = "SLA - " . $nombre;
+                $vSqlSLA = "INSERT INTO sla (nombre, tiempo_respuesta, tiempo_resolucion) 
+                           VALUES ('$nombreSLA', $tiempo_respuesta, $tiempo_resolucion)";
+                $sla_id = $this->enlace->executeSQL_DML_last($vSqlSLA);
+            }
 
+            // Actualizar categoría
             $vSql = "UPDATE categorias SET 
                         nombre = '$nombre',
-                        descripcion = '$descripcion'
+                        descripcion = '$descripcion',
+                        sla_id = " . ($sla_id ? $sla_id : "NULL") . "
                      WHERE id = $id";
 
             $this->enlace->executeSQL_DML($vSql);
-            return $this->get($id);
+
+            // Actualizar etiquetas
+            if (isset($datos->etiquetas)) {
+                // Primero, desasociar todas las etiquetas actuales de esta categoría
+                $vSqlRemoveEtiq = "UPDATE etiquetas SET categoria_id = NULL WHERE categoria_id = $id";
+                $this->enlace->executeSQL_DML($vSqlRemoveEtiq);
+                
+                // Convertir a array si es necesario
+                $etiquetas = is_array($datos->etiquetas) 
+                    ? $datos->etiquetas 
+                    : (is_object($datos->etiquetas) ? array_values((array)$datos->etiquetas) : []);
+                
+                // Asociar las nuevas etiquetas
+                foreach ($etiquetas as $etiqueta_id) {
+                    $etiqueta_id = (int)$etiqueta_id;
+                    $vSqlEtiq = "UPDATE etiquetas SET categoria_id = $id WHERE id = $etiqueta_id";
+                    $this->enlace->executeSQL_DML($vSqlEtiq);
+                }
+            }
+
+            // Actualizar especialidades
+            if (isset($datos->especialidades)) {
+                // Eliminar especialidades actuales
+                $vSqlDeleteEsp = "DELETE FROM categoria_especialidad WHERE categoria_id = $id";
+                $this->enlace->executeSQL_DML($vSqlDeleteEsp);
+                
+                // Convertir a array si es necesario
+                $especialidades = is_array($datos->especialidades) 
+                    ? $datos->especialidades 
+                    : (is_object($datos->especialidades) ? array_values((array)$datos->especialidades) : []);
+                
+                // Insertar nuevas especialidades
+                foreach ($especialidades as $especialidad_id) {
+                    $esp_id = (int)$especialidad_id;
+                    $vSqlEsp = "INSERT INTO categoria_especialidad (categoria_id, especialidad_id) 
+                               VALUES ($id, $esp_id)";
+                    $this->enlace->executeSQL_DML($vSqlEsp);
+                }
+            }
+
+            return $this->getDetalle($id);
         } catch (Exception $e) {
             handleException($e);
+            return null;
         }
     }
 
@@ -86,7 +186,13 @@ class CategoriaModel
     {
         try {
             // Obtener la información básica de la categoría
-            $vSqlCategoria = "SELECT id, nombre, descripcion FROM categorias WHERE id = $id";
+            $vSqlCategoria = "SELECT c.id, c.nombre, c.descripcion, c.sla_id,
+                                    s.nombre AS sla_nombre,
+                                    s.tiempo_respuesta,
+                                    s.tiempo_resolucion
+                             FROM categorias c
+                             LEFT JOIN sla s ON c.sla_id = s.id
+                             WHERE c.id = $id";
             $categoria = $this->enlace->ExecuteSQL($vSqlCategoria, 'asoc');
             
             if (empty($categoria)) {
@@ -95,64 +201,31 @@ class CategoriaModel
             
             $categoria = $categoria[0];
 
+            // Obtener etiquetas asociadas a esta categoría
             $etiquetas = [];
             try {
-                $vSqlEtiquetas = "SELECT DISTINCT 
-                                    SUBSTRING_INDEX(SUBSTRING_INDEX(titulo, ' ', n), ' ', -1) as palabra
-                                  FROM tickets t
-                                  CROSS JOIN (
-                                    SELECT 1 as n UNION ALL SELECT 2 UNION ALL SELECT 3 
-                                    UNION ALL SELECT 4 UNION ALL SELECT 5
-                                  ) numbers
-                                  WHERE t.categoria_id = $id 
-                                    AND LENGTH(titulo) - LENGTH(REPLACE(titulo, ' ', '')) >= n - 1
-                                  LIMIT 10";
-                $etiquetas = $this->enlace->ExecuteSQL($vSqlEtiquetas, 'asoc');
+                $vSqlEtiquetas = "SELECT id, nombre 
+                                 FROM etiquetas 
+                                 WHERE categoria_id = $id
+                                 ORDER BY nombre ASC";
+                $resultEtiq = $this->enlace->ExecuteSQL($vSqlEtiquetas, 'asoc');
+                $etiquetas = is_array($resultEtiq) ? $resultEtiq : [];
             } catch (Exception $ex) {
                 $etiquetas = [];
             }
 
-            // Obtener especialidades de los técnicos que trabajan en esta categoría
+            // Obtener especialidades asociadas a esta categoría
             $especialidades = [];
             try {
-                $vSqlEspecialidades = "SELECT DISTINCT 
-                                        e.id, 
-                                        e.nombre
+                $vSqlEspecialidades = "SELECT e.id, e.nombre
                                       FROM especialidades e
-                                      INNER JOIN tecnico_especialidad te ON e.id = te.especialidad_id
-                                      INNER JOIN tickets t ON te.tecnico_id = t.tecnico_id
-                                      WHERE t.categoria_id = $id";
-                $especialidades = $this->enlace->ExecuteSQL($vSqlEspecialidades, 'asoc');
+                                      INNER JOIN categoria_especialidad ce ON e.id = ce.especialidad_id
+                                      WHERE ce.categoria_id = $id
+                                      ORDER BY e.nombre ASC";
+                $resultEsp = $this->enlace->ExecuteSQL($vSqlEspecialidades, 'asoc');
+                $especialidades = is_array($resultEsp) ? $resultEsp : [];
             } catch (Exception $ex) {
                 $especialidades = [];
-            }
-
-            // Obtener SLA más utilizado para esta categoría
-            $sla = null;
-            try {
-                $vSqlSLA = "SELECT 
-                              s.id,
-                              s.nombre,
-                              s.tiempo_respuesta,
-                              s.tiempo_resolucion,
-                              COUNT(t.id) as uso_count
-                            FROM sla s
-                            INNER JOIN tickets t ON s.id = t.sla_id
-                            WHERE t.categoria_id = $id
-                            GROUP BY s.id, s.nombre, s.tiempo_respuesta, s.tiempo_resolucion
-                            ORDER BY uso_count DESC
-                            LIMIT 1";
-                $slaResult = $this->enlace->ExecuteSQL($vSqlSLA, 'asoc');
-                if (!empty($slaResult)) {
-                    $sla = [
-                        'id' => $slaResult[0]['id'],
-                        'nombre' => $slaResult[0]['nombre'],
-                        'tiempo_respuesta_minutos' => $slaResult[0]['tiempo_respuesta'],
-                        'tiempo_resolucion_minutos' => $slaResult[0]['tiempo_resolucion']
-                    ];
-                }
-            } catch (Exception $ex) {
-                $sla = null;
             }
 
             // Contar tickets asociados a esta categoría
@@ -181,9 +254,14 @@ class CategoriaModel
                 'id' => $categoria['id'],
                 'nombre' => $categoria['nombre'],
                 'descripcion' => $categoria['descripcion'],
+                'sla' => $categoria['sla_id'] ? [
+                    'id' => $categoria['sla_id'],
+                    'nombre' => $categoria['sla_nombre'],
+                    'tiempo_respuesta' => $categoria['tiempo_respuesta'],
+                    'tiempo_resolucion' => $categoria['tiempo_resolucion']
+                ] : null,
                 'etiquetas' => $etiquetas,
                 'especialidades' => $especialidades,
-                'sla' => $sla,
                 'total_tickets' => $totalTickets,
                 'estadisticas' => $estadisticas
             ];

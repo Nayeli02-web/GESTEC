@@ -151,6 +151,28 @@ class TicketModel
                 $ticket['dias_resolucion'] = null;
             }
 
+            // Calcular fechas límite de SLA
+            $ticket['sla_fecha_limite_respuesta'] = null;
+            $ticket['sla_fecha_limite_resolucion'] = null;
+            
+            if ($ticket['fecha_creacion']) {
+                $fecha_creacion = new DateTime($ticket['fecha_creacion']);
+                
+                // Calcular fecha límite de respuesta (fecha_creacion + tiempo_respuesta en horas)
+                if ($ticket['sla_respuesta_minutos']) {
+                    $fecha_limite_respuesta = clone $fecha_creacion;
+                    $fecha_limite_respuesta->modify('+' . $ticket['sla_respuesta_minutos'] . ' hours');
+                    $ticket['sla_fecha_limite_respuesta'] = $fecha_limite_respuesta->format('Y-m-d H:i:s');
+                }
+                
+                // Calcular fecha límite de resolución (fecha_creacion + tiempo_resolucion en horas)
+                if ($ticket['sla_resolucion_minutos']) {
+                    $fecha_limite_resolucion = clone $fecha_creacion;
+                    $fecha_limite_resolucion->modify('+' . $ticket['sla_resolucion_minutos'] . ' hours');
+                    $ticket['sla_fecha_limite_resolucion'] = $fecha_limite_resolucion->format('Y-m-d H:i:s');
+                }
+            }
+
             // Calcular cumplimiento de SLA basándose en el historial
     
             $ticket['cumplimiento_respuesta'] = 'Pendiente';
@@ -252,7 +274,9 @@ class TicketModel
                 'sla' => [
                     'nombre' => $ticket['sla_nombre'],
                     'tiempo_respuesta' => $ticket['sla_respuesta_minutos'],
-                    'tiempo_resolucion' => $ticket['sla_resolucion_minutos']
+                    'tiempo_resolucion' => $ticket['sla_resolucion_minutos'],
+                    'fecha_limite_respuesta' => $ticket['sla_fecha_limite_respuesta'],
+                    'fecha_limite_resolucion' => $ticket['sla_fecha_limite_resolucion']
                 ],
                 'cumplimiento_respuesta' => $ticket['cumplimiento_respuesta'],
                 'cumplimiento_resolucion' => $ticket['cumplimiento_resolucion'],
@@ -372,4 +396,78 @@ class TicketModel
             ];
         }
     }
+
+    /**
+     * Crear un nuevo ticket
+     */
+    public function create($datos)
+    {
+        try {
+            $titulo = addslashes($datos->titulo ?? '');
+            $descripcion = addslashes($datos->descripcion ?? '');
+            $prioridad = addslashes($datos->prioridad ?? 'media');
+            $cliente_id = (int)($datos->cliente_id ?? 0);
+            $etiqueta_id = (int)($datos->etiqueta_id ?? 0);
+
+            // Validaciones
+            if (empty($titulo) || empty($cliente_id) || empty($etiqueta_id)) {
+                return null;
+            }
+
+            // Obtener la categoría y SLA de la etiqueta seleccionada
+            $etiquetaInfo = $this->enlace->ExecuteSQL(
+                "SELECT categoria_id FROM etiquetas WHERE id = $etiqueta_id",
+                'asoc'
+            );
+
+            if (empty($etiquetaInfo)) {
+                return null;
+            }
+
+            $categoria_id = (int)$etiquetaInfo[0]['categoria_id'];
+
+            // Obtener el SLA de la categoría
+            $categoriaInfo = $this->enlace->ExecuteSQL(
+                "SELECT sla_id FROM categorias WHERE id = $categoria_id",
+                'asoc'
+            );
+
+            $sla_id = !empty($categoriaInfo) && $categoriaInfo[0]['sla_id'] 
+                ? (int)$categoriaInfo[0]['sla_id'] 
+                : null;
+
+            // Insertar ticket
+            $vSql = "INSERT INTO tickets (
+                        titulo, 
+                        descripcion, 
+                        prioridad, 
+                        estado, 
+                        cliente_id, 
+                        categoria_id, 
+                        sla_id,
+                        fecha_creacion
+                    ) VALUES (
+                        '$titulo',
+                        '$descripcion',
+                        '$prioridad',
+                        'pendiente',
+                        $cliente_id,
+                        $categoria_id,
+                        " . ($sla_id ? $sla_id : "NULL") . ",
+                        NOW()
+                    )";
+
+            $ticket_id = $this->enlace->executeSQL_DML_last($vSql);
+
+            if ($ticket_id) {
+                return $this->getDetalle($ticket_id);
+            }
+
+            return null;
+        } catch (Exception $e) {
+            handleException($e);
+            return null;
+        }
+    }
 }
+

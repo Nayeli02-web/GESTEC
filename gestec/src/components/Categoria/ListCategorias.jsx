@@ -15,6 +15,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import CategoryIcon from '@mui/icons-material/Category';
 import IconButton from '@mui/material/IconButton';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import AddIcon from '@mui/icons-material/Add';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 
 export default function ListCategorias() {
@@ -37,9 +40,19 @@ export default function ListCategorias() {
   return (
     <Container maxWidth="md" sx={{ mt: 3 }}>
       <Paper sx={{ p: 2 }} elevation={2}>
-        <Typography variant="h5" component="h2" gutterBottom>
-          Categorías
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h5" component="h2">
+            Categorías
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            component={RouterLink}
+            to="/categoria/crear"
+          >
+            Crear Categoría
+          </Button>
+        </Box>
 
         {loading ? (
           <CircularProgress />

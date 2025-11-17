@@ -219,17 +219,37 @@ export default function DetailTicket() {
                       SLA - {ticket.sla.nombre}
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={6} md={3}>
                         <Typography variant="body2" color="text.secondary">
-                          SLA Respuesta
+                          Tiempo SLA Respuesta
                         </Typography>
                         <Typography variant="h6">{formatearTiempo(ticket.sla.tiempo_respuesta)}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={6} md={3}>
                         <Typography variant="body2" color="text.secondary">
-                          SLA Resolución
+                          Fecha Límite Respuesta
+                        </Typography>
+                        <Typography variant="h6" color="error.main">
+                          {ticket.sla.fecha_limite_respuesta 
+                            ? new Date(ticket.sla.fecha_limite_respuesta).toLocaleString('es-CR')
+                            : 'N/A'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          Tiempo SLA Resolución
                         </Typography>
                         <Typography variant="h6">{formatearTiempo(ticket.sla.tiempo_resolucion)}</Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          Fecha Límite Resolución
+                        </Typography>
+                        <Typography variant="h6" color="error.main">
+                          {ticket.sla.fecha_limite_resolucion 
+                            ? new Date(ticket.sla.fecha_limite_resolucion).toLocaleString('es-CR')
+                            : 'N/A'}
+                        </Typography>
                       </Grid>
                     </Grid>
                   </CardContent>

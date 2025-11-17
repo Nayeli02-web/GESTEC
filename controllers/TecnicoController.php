@@ -61,12 +61,17 @@ class TecnicoController
     }
 
     // PUT actualizar técnico
-    public function update()
+    public function update($id = null)
     {
         try {
             $request = new Request();
             $response = new Response();
             $inputJSON = $request->getJSON();
+
+            // Si el ID viene por URL y no en el JSON, agregarlo
+            if ($id !== null && !isset($inputJSON->id)) {
+                $inputJSON->id = $id;
+            }
 
             $tecnico = new TecnicoModel();
             $result = $tecnico->update($inputJSON);

@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_BASE_URL || '';
+const BASE = import.meta.env.VITE_BASE_URL || 'http://localhost:81/GESTEC/';
 const BASE_URL = BASE + 'categoria';
 
 async function fetchWithFallback(path, options) {
@@ -8,7 +8,11 @@ async function fetchWithFallback(path, options) {
     if (!res.ok) throw res;
     return res;
   } catch {
-    const cleanPath = path.replace(/^\//, '');
+    // Remove leading slash and extract the path after BASE_URL
+    let cleanPath = path.replace(/^\//, '');
+    
+    // If path starts with BASE_URL (categoria), use it directly
+    // Otherwise, assume it's already the full path we want
     const fallback = 'http://localhost:81/GESTEC/' + cleanPath;
     const res2 = await fetch(fallback, options);
     if (!res2.ok) throw res2;

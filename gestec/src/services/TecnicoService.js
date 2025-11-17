@@ -45,4 +45,12 @@ export default {
     });
     return res.json();
   },
+  async create(tecnico) {
+    const res = await fetchWithFallback(BASE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(tecnico),
+    });
+    return res.json();
+  },
 };

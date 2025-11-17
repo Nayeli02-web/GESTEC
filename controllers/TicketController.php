@@ -48,4 +48,20 @@ class TicketController
             handleException($e);
         }
     }
+
+    // POST crear un nuevo ticket
+    public function create()
+    {
+        try {
+            $request = new Request();
+            $response = new Response();
+            $inputJSON = $request->getJSON();
+
+            $ticketM = new TicketModel();
+            $result = $ticketM->create($inputJSON);
+            $response->toJSON($result);
+        } catch (Exception $e) {
+            handleException($e);
+        }
+    }
 }

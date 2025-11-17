@@ -54,16 +54,33 @@ class TecnicoModel
             // Crear usuario primero
             $nombre = addslashes($datos->nombre);
             $correo = addslashes($datos->correo);
-            $telefono = addslashes($datos->telefono);
-
-            $vSqlUser = "INSERT INTO usuarios (nombre, correo, contrasena, telefono, rol_id) VALUES ('$nombre', '$correo', '',  '$telefono', 2)";
+            $telefono = addslashes($datos->telefono ?? '');
+            $contrasena = password_hash($datos->contrasena ?? '12345', PASSWORD_DEFAULT); // contraseña por defecto
+            
+            // Rol 3 = Técnico
+            $vSqlUser = "INSERT INTO usuarios (nombre, correo, contrasena, telefono, rol_id) 
+                        VALUES ('$nombre', '$correo', '$contrasena', '$telefono', 3)";
             $idUser = $this->enlace->executeSQL_DML_last($vSqlUser);
+            
             // Crear registro técnico
-            $vSql = "INSERT INTO tecnicos (usuario_id, disponible) VALUES ($idUser, 1)";
+            $disponible = isset($datos->disponible) ? (int)$datos->disponible : 1;
+            $vSql = "INSERT INTO tecnicos (usuario_id, disponible) VALUES ($idUser, $disponible)";
             $idNuevo = $this->enlace->executeSQL_DML_last($vSql);
-            return $this->get($idNuevo);
+            
+            // Asignar especialidades si se proporcionaron
+            if (isset($datos->especialidades) && is_array($datos->especialidades)) {
+                foreach ($datos->especialidades as $especialidad_id) {
+                    $esp_id = (int)$especialidad_id;
+                    $vSqlEsp = "INSERT INTO tecnico_especialidad (tecnico_id, especialidad_id) 
+                               VALUES ($idNuevo, $esp_id)";
+                    $this->enlace->executeSQL_DML($vSqlEsp);
+                }
+            }
+            
+            return $this->getDetalle($idNuevo);
         } catch (Exception $e) {
             handleException($e);
+            return null;
         }
     }
 
@@ -75,14 +92,14 @@ class TecnicoModel
         try {
             $id = (int) $datos->id;
             // Obtener usuario_id asociado
-            $res = $this->enlace->ExecuteSQL("SELECT usuario_id FROM tecnicos WHERE id = $id");
+            $res = $this->enlace->ExecuteSQL("SELECT usuario_id FROM tecnicos WHERE id = $id", 'asoc');
             if (empty($res)) return null;
             $usuario_id = (int) $res[0]['usuario_id'];
 
             $nombre = addslashes($datos->nombre ?? '');
             $correo = addslashes($datos->correo ?? '');
             $telefono = addslashes($datos->telefono ?? '');
-            $disponible = isset($datos->disponibilidad) ? (int)$datos->disponibilidad : null;
+            $disponible = isset($datos->disponible) ? (int)$datos->disponible : null;
 
             // Actualizar usuario
             $vSqlUser = "UPDATE usuarios SET 
@@ -98,9 +115,35 @@ class TecnicoModel
                 $this->enlace->executeSQL_DML($vSqlTec);
             }
 
-            return $this->get($id);
+            // Actualizar especialidades si se proporcionaron
+            if (isset($datos->especialidades)) {
+                // Convertir a array PHP si viene como array JSON u objeto
+                $especialidades = $datos->especialidades;
+                
+                // Si es un objeto stdClass, convertir sus propiedades a array
+                if (is_object($especialidades)) {
+                    $especialidades = array_values((array)$especialidades);
+                }
+                
+                if (!empty($especialidades) && is_array($especialidades)) {
+                    // Eliminar especialidades actuales
+                    $vSqlDeleteEsp = "DELETE FROM tecnico_especialidad WHERE tecnico_id = $id";
+                    $this->enlace->executeSQL_DML($vSqlDeleteEsp);
+                    
+                    // Insertar nuevas especialidades
+                    foreach ($especialidades as $especialidad_id) {
+                        $esp_id = (int)$especialidad_id;
+                        $vSqlEsp = "INSERT INTO tecnico_especialidad (tecnico_id, especialidad_id) 
+                                   VALUES ($id, $esp_id)";
+                        $this->enlace->executeSQL_DML($vSqlEsp);
+                    }
+                }
+            }
+
+            return $this->getDetalle($id);
         } catch (Exception $e) {
             handleException($e);
+            return null;
         }
     }
 

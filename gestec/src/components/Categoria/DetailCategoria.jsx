@@ -8,6 +8,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EditIcon from '@mui/icons-material/Edit';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
@@ -48,13 +49,21 @@ export default function DetailCategoria() {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/categorias')}
-        sx={{ mb: 2 }}
-      >
-        Volver a Categorías
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/categorias')}
+        >
+          Volver a Categorías
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<EditIcon />}
+          onClick={() => navigate(`/categoria/${id}/editar`)}
+        >
+          Editar
+        </Button>
+      </Box>
 
       {loading ? (
         <Box display="flex" justifyContent="center" p={5}>
