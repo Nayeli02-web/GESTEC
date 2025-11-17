@@ -15,9 +15,12 @@ import {
   InputLabel,
   FormControl,
   FormHelperText,
+  Snackbar,
+  AlertTitle,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TicketService from '../../services/TicketService';
 import EtiquetaService from '../../services/EtiquetaService';
 
@@ -59,10 +62,10 @@ function CreateTicket() {
         setEtiquetas(etiquetasData);
 
         // Simular información del usuario (normalmente vendría del sistema de autenticación)
-        // Por ahora, usamos datos quemados
+        // Usuario ID 1: María López (Cliente)
         setUsuarioInfo({
-          nombre: 'Usuario Demo',
-          correo: 'usuario@example.com'
+          nombre: 'María López',
+          correo: 'maria@correo.com'
         });
 
       } catch (err) {
@@ -192,11 +195,28 @@ function CreateTicket() {
           </Button>
         </Box>
 
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            ¡Ticket creado exitosamente! Redirigiendo...
+        <Snackbar
+          open={success}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ mt: 8 }}
+        >
+          <Alert 
+            severity="success" 
+            icon={<CheckCircleIcon fontSize="large" />}
+            sx={{ 
+              fontSize: '1.1rem',
+              minWidth: '400px',
+              '& .MuiAlert-icon': {
+                fontSize: '2.5rem'
+              }
+            }}
+          >
+            <AlertTitle sx={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
+              ¡Éxito!
+            </AlertTitle>
+            Ticket creado exitosamente. Redirigiendo a la lista de tickets...
           </Alert>
-        )}
+        </Snackbar>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
