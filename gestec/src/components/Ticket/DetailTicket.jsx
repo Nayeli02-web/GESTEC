@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import TicketService from '../../services/TicketService';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
@@ -22,6 +23,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 
 export default function DetailTicket() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,7 +51,27 @@ export default function DetailTicket() {
   // Formatear tiempo 
   const formatearTiempo = (horas) => {
     if (!horas) return 'N/A';
-    return `${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+    return t('ticket.hours', { count: horas });
+  };
+
+  const getPrioridadLabel = (prioridad) => {
+    switch (prioridad?.toLowerCase()) {
+      case 'alta': return t('ticket.high');
+      case 'media': return t('ticket.medium');
+      case 'baja': return t('ticket.low');
+      default: return prioridad;
+    }
+  };
+
+  const getEstadoLabel = (estado) => {
+    switch (estado?.toLowerCase()) {
+      case 'pendiente': return t('ticket.pending');
+      case 'asignado': return t('ticket.assigned');
+      case 'en_proceso': return t('ticket.inProgress');
+      case 'resuelto': return t('ticket.resolved');
+      case 'cerrado': return t('ticket.closed');
+      default: return estado;
+    }
   };
 
   const getPrioridadColor = (prioridad) => {
@@ -79,7 +101,7 @@ export default function DetailTicket() {
         onClick={() => navigate(fromPath)}
         sx={{ mb: 2 }}
       >
-        Volver
+        {t('ticket.backToList')}
       </Button>
 
       {loading ? (
@@ -89,9 +111,9 @@ export default function DetailTicket() {
           </Box>
         </Paper>
       ) : error ? (
-        <Alert severity="error">Error al cargar el ticket</Alert>
+        <Alert severity="error">{t('ticket.loadingData')}</Alert>
       ) : !ticket ? (
-        <Alert severity="warning">Ticket no encontrado</Alert>
+        <Alert severity="warning">{t('ticket.notFound')}</Alert>
       ) : (
         <>
           {/* Encabezado Principal */}
@@ -102,17 +124,17 @@ export default function DetailTicket() {
                   {ticket.titulo}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Ticket #{ticket.id} • Creado: {new Date(ticket.fecha_creacion).toLocaleString()}
+                  Ticket #{ticket.id} • {t('ticket.creationDate')}: {new Date(ticket.fecha_creacion).toLocaleString()}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'flex-end' }}>
                 <Chip 
-                  label={`Prioridad: ${ticket.prioridad}`} 
+                  label={`${t('ticket.priority')}: ${getPrioridadLabel(ticket.prioridad)}`} 
                   color={getPrioridadColor(ticket.prioridad)}
                   size="medium"
                 />
                 <Chip 
-                  label={`Estado: ${ticket.estado}`} 
+                  label={`${t('ticket.state')}: ${getEstadoLabel(ticket.estado)}`} 
                   color={getEstadoColor(ticket.estado)}
                   size="medium"
                   variant="outlined"
@@ -124,10 +146,10 @@ export default function DetailTicket() {
 
             {/* Descripción */}
             <Typography variant="h6" gutterBottom>
-              Descripción
+              {t('ticket.description')}
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph>
-              {ticket.descripcion || 'Sin descripción'}
+              {ticket.descripcion || t('ticket.noDescription')}
             </Typography>
           </Paper>
 
@@ -137,9 +159,9 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Usuario Solicitante
+                    {t('ticket.requestingUser')}
                   </Typography>
-                  <Typography variant="body1"><strong>Nombre:</strong> {ticket.cliente?.nombre}</Typography>
+                  <Typography variant="body1"><strong>{t('ticket.name')}:</strong> {ticket.cliente?.nombre}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {ticket.cliente?.correo}
                   </Typography>
@@ -151,18 +173,18 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Técnico Asignado
+                    {t('ticket.assignedTechnician')}
                   </Typography>
                   {ticket.tecnico ? (
                     <>
-                      <Typography variant="body1"><strong>Nombre:</strong> {ticket.tecnico.nombre}</Typography>
+                      <Typography variant="body1"><strong>{t('ticket.name')}:</strong> {ticket.tecnico.nombre}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         {ticket.tecnico.correo}
                       </Typography>
                     </>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      Sin técnico asignado
+                      {t('ticket.noTechnicianAssigned')}
                     </Typography>
                   )}
                 </CardContent>
@@ -174,10 +196,10 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Categoría Asociada
+                    {t('ticket.associatedCategory')}
                   </Typography>
                   <Chip 
-                    label={ticket.categoria?.nombre || 'Sin categoría'} 
+                    label={ticket.categoria?.nombre || t('ticket.noCategory')} 
                     color="secondary" 
                     variant="outlined"
                     size="medium"
@@ -190,20 +212,20 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Resolución
+                    {t('ticket.resolution')}
                   </Typography>
                   {ticket.fecha_cierre ? (
                     <>
                       <Typography variant="body2">
-                        <strong>Fecha de Cierre:</strong> {new Date(ticket.fecha_cierre).toLocaleString()}
+                        <strong>{t('ticket.closureDate')}:</strong> {new Date(ticket.fecha_cierre).toLocaleString()}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Días de Resolución:</strong> {ticket.dias_resolucion} días
+                        <strong>{t('ticket.resolutionDays')}:</strong> {ticket.dias_resolucion} {t('ticket.days')}
                       </Typography>
                     </>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      Ticket en proceso
+                      {t('ticket.inProcessStatus')}
                     </Typography>
                   )}
                 </CardContent>
@@ -221,13 +243,13 @@ export default function DetailTicket() {
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} md={3}>
                         <Typography variant="body2" color="text.secondary">
-                          Tiempo SLA Respuesta
+                          {t('ticket.slaResponseTime')}
                         </Typography>
                         <Typography variant="h6">{formatearTiempo(ticket.sla.tiempo_respuesta)}</Typography>
                       </Grid>
                       <Grid item xs={12} sm={6} md={3}>
                         <Typography variant="body2" color="text.secondary">
-                          Fecha Límite Respuesta
+                          {t('ticket.responseDeadlineLabel')}
                         </Typography>
                         <Typography variant="h6" color="error.main">
                           {ticket.sla.fecha_limite_respuesta 
@@ -237,13 +259,13 @@ export default function DetailTicket() {
                       </Grid>
                       <Grid item xs={12} sm={6} md={3}>
                         <Typography variant="body2" color="text.secondary">
-                          Tiempo SLA Resolución
+                          {t('ticket.slaResolutionTimeLabel')}
                         </Typography>
                         <Typography variant="h6">{formatearTiempo(ticket.sla.tiempo_resolucion)}</Typography>
                       </Grid>
                       <Grid item xs={12} sm={6} md={3}>
                         <Typography variant="body2" color="text.secondary">
-                          Fecha Límite Resolución
+                          {t('ticket.resolutionDeadlineLabel')}
                         </Typography>
                         <Typography variant="h6" color="error.main">
                           {ticket.sla.fecha_limite_resolucion 
@@ -263,7 +285,7 @@ export default function DetailTicket() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      Historial de Estados
+                      {t('ticket.stateHistory')}
                     </Typography>
                     <List>
                       {ticket.historial.map((cambio, idx) => (
@@ -272,9 +294,9 @@ export default function DetailTicket() {
                             <ListItemText
                               primary={
                                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                  <Chip label={cambio.estado_anterior} size="small" variant="outlined" />
+                                  <Chip label={getEstadoLabel(cambio.estado_anterior)} size="small" variant="outlined" />
                                   <Typography>→</Typography>
-                                  <Chip label={cambio.estado_nuevo} size="small" color="primary" />
+                                  <Chip label={getEstadoLabel(cambio.estado_nuevo)} size="small" color="primary" />
                                 </Box>
                               }
                               secondary={
@@ -306,7 +328,7 @@ export default function DetailTicket() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      Evidencias e Imágenes
+                      {t('ticket.evidence')}
                     </Typography>
                     <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} rowHeight={164}>
                       {ticket.imagenes.map((img) => (
@@ -330,7 +352,7 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Valoración del Servicio
+                    {t('ticket.serviceRating')}
                   </Typography>
                   {ticket.valoracion ? (
                     <>
@@ -350,12 +372,12 @@ export default function DetailTicket() {
                         </Typography>
                       )}
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Valorado el: {new Date(ticket.valoracion.fecha).toLocaleString()}
+                        {t('ticket.ratedOn')}: {new Date(ticket.valoracion.fecha).toLocaleString()}
                       </Typography>
                     </>
                   ) : (
                     <Alert severity="info">
-                      Este ticket aún no ha sido valorado por el cliente.
+                      {t('ticket.notRatedYet')}
                     </Alert>
                   )}
                 </CardContent>

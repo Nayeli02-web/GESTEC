@@ -15,8 +15,11 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import LiveTvIcon from "@mui/icons-material/LiveTv";
 import Tooltip from "@mui/material/Tooltip";
+import LanguageSwitcher from "../LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 export default function Header() {
+  const { t } = useTranslation();
   //Gestión menu usuario
   const [anchorElUser, setAnchorEl] = useState(null);
   //Gestión menu opciones
@@ -58,8 +61,9 @@ export default function Header() {
   ];
   //Lista enlaces menu principal 
   const navItems = [
-    { name: 'Técnicos', link: '/tecnicos' },
-    { name: 'Categorías', link: '/categorias' }
+    { name: t('navigation.technicians'), link: '/tecnicos' },
+    { name: t('navigation.categories'), link: '/categorias' },
+    { name: t('navigation.tickets'), link: '/tickets' }
   ];
   //Identificador menu principal
   const menuIdPrincipal = "menu-appbar";
@@ -249,7 +253,9 @@ export default function Header() {
                 <NotificationsIcon />
               </Badge>
             </IconButton>
+            <LanguageSwitcher />
           </Box>
+          <LanguageSwitcher />
           <div>{userMenu}</div>
           <Box sx={{ display: { xs: "flex", md: "none" } }}>
             <IconButton

@@ -18,8 +18,10 @@ import Tooltip from '@mui/material/Tooltip';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import Box from '@mui/material/Box';
+import { useTranslation } from 'react-i18next';
 
 export default function ListTecnicos() {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,7 +43,7 @@ export default function ListTecnicos() {
       <Paper sx={{ p: 2 }} elevation={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" component="h2">
-            Técnicos
+            {t('technician.list')}
           </Typography>
           <Button
             variant="contained"
@@ -49,26 +51,26 @@ export default function ListTecnicos() {
             component={RouterLink}
             to="/tecnico/crear"
           >
-            Crear Técnico
+            {t('technician.new')}
           </Button>
         </Box>
 
         {loading ? (
           <CircularProgress />
         ) : error ? (
-          <Typography color="error">Error al cargar técnicos</Typography>
+          <Typography color="error">{t('technician.loadingError')}</Typography>
         ) : (
           <List>
-            {data.map((t, idx) => (
-              <div key={t.id || idx}>
+            {data.map((tecnico, idx) => (
+              <div key={tecnico.id || idx}>
                 <ListItem 
                   disablePadding
                   secondaryAction={
-                    <Tooltip title="Ver detalle">
+                    <Tooltip title={t('common.viewDetail')}>
                       <IconButton 
                         edge="end" 
                         component={RouterLink} 
-                        to={`/tecnico/${t.id}`}
+                        to={`/tecnico/${tecnico.id}`}
                         color="primary"
                       >
                         <ArrowForwardIcon />
@@ -76,15 +78,15 @@ export default function ListTecnicos() {
                     </Tooltip>
                   }
                 >
-                  <ListItemButton component={RouterLink} to={`/tecnico/${t.id}`}>
+                  <ListItemButton component={RouterLink} to={`/tecnico/${tecnico.id}`}>
                     <ListItemAvatar>
                       <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        {(t.nombre || '').split(' ').map(n=>n[0]).slice(0,2).join('')}
+                        {(tecnico.nombre || '').split(' ').map(n=>n[0]).slice(0,2).join('')}
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={<Typography variant="h6" color="primary">{t.nombre}</Typography>}
-                      secondary={`${t.correo} — ${t.telefono}`}
+                      primary={<Typography variant="h6" color="primary">{tecnico.nombre}</Typography>}
+                      secondary={`${tecnico.correo} — ${tecnico.telefono}`}
                     />
                   </ListItemButton>
                 </ListItem>

@@ -28,8 +28,10 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import BuildIcon from '@mui/icons-material/Build';
+import { useTranslation } from 'react-i18next';
 
 export default function DetailTecnico() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [tecnico, setTecnico] = useState(null);
@@ -58,7 +60,7 @@ export default function DetailTecnico() {
           onClick={() => navigate('/tecnicos')}
           variant="outlined"
         >
-          Volver a Técnicos
+          {t('technician.backToList')}
         </Button>
         <Button
           startIcon={<EditIcon />}
@@ -66,7 +68,7 @@ export default function DetailTecnico() {
           variant="contained"
           color="primary"
         >
-          Editar Técnico
+          {t('technician.edit')}
         </Button>
       </Box>
 
@@ -77,9 +79,9 @@ export default function DetailTecnico() {
           </Box>
         </Paper>
       ) : error ? (
-        <Alert severity="error">Error al cargar el técnico</Alert>
+        <Alert severity="error">{t('technician.loadingError')}</Alert>
       ) : !tecnico ? (
-        <Alert severity="warning">Técnico no encontrado</Alert>
+        <Alert severity="warning">{t('technician.notFound')}</Alert>
       ) : (
         <>
           {/* Encabezado Principal */}
@@ -102,7 +104,7 @@ export default function DetailTecnico() {
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                   <Chip 
                     icon={Number(tecnico.disponible) === 1 ? <CheckCircleIcon /> : <CancelIcon />}
-                    label={Number(tecnico.disponible) === 1 ? 'Disponible' : 'No Disponible'} 
+                    label={Number(tecnico.disponible) === 1 ? t('technician.available') : t('technician.notAvailable')} 
                     color={Number(tecnico.disponible) === 1 ? 'success' : 'error'}
                     size="small"
                   />
@@ -124,7 +126,7 @@ export default function DetailTecnico() {
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <PersonIcon />
-                    Información Personal
+                    {t('technician.contactInfo')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                   <List dense>
@@ -133,7 +135,7 @@ export default function DetailTecnico() {
                         <PersonIcon color="action" />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="Nombre completo"
+                        primary={t('technician.name')}
                         secondary={tecnico.nombre || 'N/A'}
                       />
                     </ListItem>
@@ -142,7 +144,7 @@ export default function DetailTecnico() {
                         <EmailIcon color="action" />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="Correo electrónico"
+                        primary={t('technician.email')}
                         secondary={tecnico.correo || 'N/A'}
                       />
                     </ListItem>
@@ -151,7 +153,7 @@ export default function DetailTecnico() {
                         <PhoneIcon color="action" />
                       </ListItemIcon>
                       <ListItemText 
-                        primary="Teléfono"
+                        primary={t('technician.phone')}
                         secondary={tecnico.telefono || 'N/A'}
                       />
                     </ListItem>
@@ -175,16 +177,16 @@ export default function DetailTecnico() {
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AssignmentIcon />
-                    Carga de Trabajo y Disponibilidad
+                    {t('technician.statistics')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Estado de disponibilidad
+                      {t('technician.availability')}
                     </Typography>
                     <Chip 
                       icon={Number(tecnico.disponible) === 1 ? <CheckCircleIcon /> : <CancelIcon />}
-                      label={Number(tecnico.disponible) === 1 ? 'Disponible para asignación' : 'No disponible'} 
+                      label={Number(tecnico.disponible) === 1 ? t('technician.available') : t('technician.notAvailable')} 
                       color={Number(tecnico.disponible) === 1 ? 'success' : 'error'}
                       sx={{ mt: 1 }}
                     />
@@ -192,14 +194,14 @@ export default function DetailTecnico() {
                   <Divider sx={{ my: 2 }} />
                   <Box>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Tickets activos asignados
+                      {t('technician.assignedTickets')}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mt: 1 }}>
                       <Typography variant="h3" color="primary.main">
                         {tecnico.carga_trabajo || 0}
                       </Typography>
                       <Typography variant="body1" color="text.secondary">
-                        tickets en proceso
+                        {t('technician.inProgress')}
                       </Typography>
                     </Box>
                   </Box>
@@ -218,7 +220,7 @@ export default function DetailTecnico() {
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <BuildIcon />
-                    Especialidades
+                    {t('technician.specialties')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                   {tecnico.especialidades && tecnico.especialidades.length > 0 ? (
@@ -248,7 +250,7 @@ export default function DetailTecnico() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      Estadísticas de Rendimiento
+                      {t('technician.statistics')}
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
                     <Grid container spacing={2}>
@@ -258,7 +260,7 @@ export default function DetailTecnico() {
                             {tecnico.tickets_resueltos || 0}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Tickets resueltos
+                            {t('technician.resolved')}
                           </Typography>
                         </Box>
                       </Grid>
@@ -268,7 +270,7 @@ export default function DetailTecnico() {
                             {tecnico.carga_trabajo || 0}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            Tickets activos
+                            {t('technician.assignedTickets')}
                           </Typography>
                         </Box>
                       </Grid>

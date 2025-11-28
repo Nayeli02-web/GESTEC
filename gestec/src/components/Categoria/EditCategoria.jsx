@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Container,
   Paper,
@@ -41,6 +42,7 @@ const MenuProps = {
 };
 
 function EditCategoria() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ function EditCategoria() {
         ]);
 
         if (!categoriaData) {
-          setError('Categoría no encontrada');
+          setError(t('category.notFound'));
           return;
         }
 
@@ -118,7 +120,7 @@ function EditCategoria() {
 
       } catch (err) {
         console.error('Error al cargar datos:', err);
-        setError('Error al cargar los datos de la categoría');
+        setError(t('category.loadingError'));
       } finally {
         setLoading(false);
       }
@@ -187,33 +189,33 @@ function EditCategoria() {
     const newErrors = {};
     
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre es obligatorio';
+      newErrors.nombre = t('common.required');
     }
     
     if (formData.etiquetas.length === 0) {
-      newErrors.etiquetas = 'Debe seleccionar al menos una etiqueta';
+      newErrors.etiquetas = t('category.minOnTag');
     }
     
     if (formData.especialidades.length === 0) {
-      newErrors.especialidades = 'Debe seleccionar al menos una especialidad';
+      newErrors.especialidades = t('category.minOneSpecialty');
     }
     
     if (slaMode === 'existente') {
       if (!formData.sla_id) {
-        newErrors.sla = 'Debe seleccionar un SLA';
+        newErrors.sla = t('category.mustSelectSLA');
       }
     } else {
       if (!formData.tiempo_respuesta || formData.tiempo_respuesta <= 0) {
-        newErrors.tiempo_respuesta = 'El tiempo de respuesta debe ser mayor a cero';
+        newErrors.tiempo_respuesta = t('category.responseGreaterZero');
       }
       
       if (!formData.tiempo_resolucion || formData.tiempo_resolucion <= 0) {
-        newErrors.tiempo_resolucion = 'El tiempo de resolución debe ser mayor a cero';
+        newErrors.tiempo_resolucion = t('category.resolutionGreaterZero');
       }
       
       if (formData.tiempo_respuesta && formData.tiempo_resolucion) {
         if (parseInt(formData.tiempo_resolucion) <= parseInt(formData.tiempo_respuesta)) {
-          newErrors.tiempo_resolucion = 'El tiempo de resolución debe ser mayor que el tiempo de respuesta';
+          newErrors.tiempo_resolucion = t('category.resolutionGreaterResponse');
         }
       }
     }
@@ -257,7 +259,7 @@ function EditCategoria() {
 
     } catch (err) {
       console.error('Error al actualizar categoría:', err);
-      setError('Error al actualizar la categoría. Por favor, intente nuevamente.');
+      setError(t('category.updateError'));
     } finally {
       setSubmitting(false);
     }
@@ -268,7 +270,7 @@ function EditCategoria() {
       <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
-          Cargando datos de la categoría...
+          {t('category.loadingData')}
         </Typography>
       </Container>
     );
@@ -284,7 +286,7 @@ function EditCategoria() {
           startIcon={<ArrowBackIcon />}
           sx={{ mt: 2 }}
         >
-          Volver a Categorías
+          {t('category.backToList')}
         </Button>
       </Container>
     );
@@ -297,7 +299,7 @@ function EditCategoria() {
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h4" component="h1">
-            Modificar Categoría
+            {t('category.edit')}
           </Typography>
           <Button
             component={RouterLink}
@@ -305,13 +307,13 @@ function EditCategoria() {
             startIcon={<ArrowBackIcon />}
             variant="outlined"
           >
-            Volver
+            {t('common.back')}
           </Button>
         </Box>
 
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
-            ¡Categoría actualizada exitosamente! Redirigiendo...
+            {t('category.updatedSuccess')} {t('technician.redirecting')}
           </Alert>
         )}
 
@@ -328,12 +330,12 @@ function EditCategoria() {
               <TextField
                 required
                 fullWidth
-                label="Nombre de la Categoría"
+                label={t('category.name')}
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
                 error={!!errors.nombre}
-                helperText={errors.nombre || 'Ejemplo: Red de Oficina, Equipos de Cómputo'}
+                helperText={errors.nombre || t('category.namePlaceholder')}
                 disabled={submitting}
               />
             </Grid>
@@ -344,11 +346,11 @@ function EditCategoria() {
                 fullWidth
                 multiline
                 rows={3}
-                label="Descripción"
+                label={t('category.description')}
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleChange}
-                helperText="Descripción opcional de la categoría"
+                helperText={t('category.descriptionPlaceholder')}
                 disabled={submitting}
               />
             </Grid>
@@ -356,12 +358,12 @@ function EditCategoria() {
             {/* Etiquetas */}
             <Grid item xs={12}>
               <FormControl fullWidth required error={!!errors.etiquetas}>
-                <InputLabel>Etiquetas Asociadas</InputLabel>
+                <InputLabel>{t('category.associatedTags')}</InputLabel>
                 <Select
                   multiple
                   value={formData.etiquetas}
                   onChange={handleEtiquetasChange}
-                  input={<OutlinedInput label="Etiquetas Asociadas" />}
+                  input={<OutlinedInput label={t('category.associatedTags')} />}
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {selected.map((value) => {
@@ -389,7 +391,7 @@ function EditCategoria() {
                   <FormHelperText>{errors.etiquetas}</FormHelperText>
                 )}
                 {!errors.etiquetas && (
-                  <FormHelperText>Seleccione las etiquetas que pertenecen a esta categoría</FormHelperText>
+                  <FormHelperText>{t('category.selectTags')}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -397,12 +399,12 @@ function EditCategoria() {
             {/* Especialidades */}
             <Grid item xs={12}>
               <FormControl fullWidth required error={!!errors.especialidades}>
-                <InputLabel>Especialidades Requeridas</InputLabel>
+                <InputLabel>{t('category.requiredSpecialties')}</InputLabel>
                 <Select
                   multiple
                   value={formData.especialidades}
                   onChange={handleEspecialidadesChange}
-                  input={<OutlinedInput label="Especialidades Requeridas" />}
+                  input={<OutlinedInput label={t('category.requiredSpecialties')} />}
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {selected.map((value) => {
@@ -431,7 +433,7 @@ function EditCategoria() {
                   <FormHelperText>{errors.especialidades}</FormHelperText>
                 )}
                 {!errors.especialidades && (
-                  <FormHelperText>Seleccione las especialidades necesarias para esta categoría</FormHelperText>
+                  <FormHelperText>{t('category.selectSpecialties')}</FormHelperText>
                 )}
               </FormControl>
             </Grid>
@@ -439,7 +441,7 @@ function EditCategoria() {
             {/* Modo de SLA */}
             <Grid item xs={12}>
               <FormControl component="fieldset">
-                <FormLabel component="legend">Configuración de SLA</FormLabel>
+                <FormLabel component="legend">{t('category.slaConfig')}</FormLabel>
                 <RadioGroup
                   row
                   value={slaMode}
@@ -448,13 +450,13 @@ function EditCategoria() {
                   <FormControlLabel 
                     value="existente" 
                     control={<Radio />} 
-                    label="Seleccionar SLA Existente" 
+                    label={t('category.existingSLA')} 
                     disabled={submitting}
                   />
                   <FormControlLabel 
                     value="personalizado" 
                     control={<Radio />} 
-                    label="Establecer Tiempos Personalizados" 
+                    label={t('category.customTimes')} 
                     disabled={submitting}
                   />
                 </RadioGroup>
@@ -466,25 +468,25 @@ function EditCategoria() {
               <>
                 <Grid item xs={12}>
                   <FormControl fullWidth required error={!!errors.sla}>
-                    <InputLabel>SLA</InputLabel>
+                    <InputLabel>{t('category.sla')}</InputLabel>
                     <Select
                       name="sla_id"
                       value={formData.sla_id}
                       onChange={handleChange}
-                      label="SLA"
+                      label={t('category.sla')}
                       disabled={submitting}
                     >
                       <MenuItem value="">
-                        <em>Seleccione un SLA</em>
+                        <em>{t('category.selectSLA')}</em>
                       </MenuItem>
                       {slas.map((sla) => (
                         <MenuItem key={sla.id} value={sla.id}>
-                          {sla.nombre} (Respuesta: {sla.tiempo_respuesta}h | Resolución: {sla.tiempo_resolucion}h)
+                          {sla.nombre} ({t('category.responseTime').replace(' (horas)', '')}: {sla.tiempo_respuesta}h | {t('category.resolutionTime').replace(' (horas)', '')}: {sla.tiempo_resolucion}h)
                         </MenuItem>
                       ))}
                     </Select>
                     <FormHelperText>
-                      {errors.sla || 'Seleccione el nivel de servicio para esta categoría'}
+                      {errors.sla || t('category.selectSLA')}
                     </FormHelperText>
                   </FormControl>
                 </Grid>
@@ -493,13 +495,13 @@ function EditCategoria() {
                   <Grid item xs={12}>
                     <Alert severity="info">
                       <Typography variant="body2">
-                        <strong>SLA Seleccionado:</strong> {slaSeleccionado.nombre}
+                        <strong>{t('category.slaSelected')}:</strong> {slaSeleccionado.nombre}
                       </Typography>
                       <Typography variant="body2">
-                        • Tiempo de Respuesta: {slaSeleccionado.tiempo_respuesta} horas
+                        • {t('category.responseTime')}: {slaSeleccionado.tiempo_respuesta} {t('ticket.hours', { count: slaSeleccionado.tiempo_respuesta })}
                       </Typography>
                       <Typography variant="body2">
-                        • Tiempo de Resolución: {slaSeleccionado.tiempo_resolucion} horas
+                        • {t('category.resolutionTime')}: {slaSeleccionado.tiempo_resolucion} {t('ticket.hours', { count: slaSeleccionado.tiempo_resolucion })}
                       </Typography>
                     </Alert>
                   </Grid>
@@ -515,12 +517,12 @@ function EditCategoria() {
                     required
                     fullWidth
                     type="number"
-                    label="Tiempo de Respuesta (horas)"
+                    label={t('category.responseTime')}
                     name="tiempo_respuesta"
                     value={formData.tiempo_respuesta}
                     onChange={handleChange}
                     error={!!errors.tiempo_respuesta}
-                    helperText={errors.tiempo_respuesta || 'Tiempo máximo para primera respuesta'}
+                    helperText={errors.tiempo_respuesta || t('category.responseTimePlaceholder')}
                     disabled={submitting}
                     inputProps={{ min: 1 }}
                   />
@@ -530,12 +532,12 @@ function EditCategoria() {
                     required
                     fullWidth
                     type="number"
-                    label="Tiempo de Resolución (horas)"
+                    label={t('category.resolutionTime')}
                     name="tiempo_resolucion"
                     value={formData.tiempo_resolucion}
                     onChange={handleChange}
                     error={!!errors.tiempo_resolucion}
-                    helperText={errors.tiempo_resolucion || 'Tiempo máximo para resolver el ticket'}
+                    helperText={errors.tiempo_resolucion || t('category.resolutionTimePlaceholder')}
                     disabled={submitting}
                     inputProps={{ min: 1 }}
                   />
@@ -545,7 +547,7 @@ function EditCategoria() {
                   <Grid item xs={12}>
                     <Alert severity="success">
                       <Typography variant="body2">
-                        ✓ Configuración válida: El tiempo de resolución ({formData.tiempo_resolucion}h) es mayor que el tiempo de respuesta ({formData.tiempo_respuesta}h)
+                        {t('category.validConfig', { resolution: formData.tiempo_resolucion, response: formData.tiempo_respuesta })}
                       </Typography>
                     </Alert>
                   </Grid>
@@ -562,7 +564,7 @@ function EditCategoria() {
                   variant="outlined"
                   disabled={submitting}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -570,7 +572,7 @@ function EditCategoria() {
                   startIcon={submitting ? <CircularProgress size={20} /> : <SaveIcon />}
                   disabled={submitting}
                 >
-                  {submitting ? 'Guardando...' : 'Guardar Cambios'}
+                  {submitting ? t('common.saving') : t('common.saveChanges')}
                 </Button>
               </Box>
             </Grid>

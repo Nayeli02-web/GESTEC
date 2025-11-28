@@ -21,6 +21,7 @@ import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import TecnicoService from '../../services/TecnicoService';
 import EspecialidadService from '../../services/EspecialidadService';
+import { useTranslation } from 'react-i18next';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -34,6 +35,7 @@ const MenuProps = {
 };
 
 function EditTecnico() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ function EditTecnico() {
         const tecnicoData = await TecnicoService.getDetalle(id);
         
         if (!tecnicoData) {
-          setError('Técnico no encontrado');
+          setError(t('technician.notFound'));
           return;
         }
 
@@ -87,7 +89,7 @@ function EditTecnico() {
 
       } catch (err) {
         console.error('Error al cargar datos:', err);
-        setError('Error al cargar los datos del técnico');
+        setError(t('technician.loadingError'));
       } finally {
         setLoading(false);
       }
@@ -129,22 +131,22 @@ function EditTecnico() {
     
     // Validar nombre
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre es obligatorio';
+      newErrors.nombre = t('common.required');
     }
     
     // Validar correo
     if (!formData.correo.trim()) {
-      newErrors.correo = 'El correo es obligatorio';
+      newErrors.correo = t('common.required');
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.correo)) {
-        newErrors.correo = 'El formato del correo no es válido';
+        newErrors.correo = t('common.invalidEmail');
       }
     }
     
     // Validar especialidades
     if (formData.especialidades.length === 0) {
-      newErrors.especialidades = 'Debe seleccionar al menos una especialidad';
+      newErrors.especialidades = t('technician.minOneSpecialty');
     }
     
     setErrors(newErrors);
@@ -180,7 +182,7 @@ function EditTecnico() {
 
     } catch (err) {
       console.error('Error al actualizar técnico:', err);
-      setError('Error al actualizar el técnico. Por favor, intente nuevamente.');
+      setError(t('technician.updateError'));
     } finally {
       setSubmitting(false);
     }
@@ -191,7 +193,7 @@ function EditTecnico() {
       <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
-          Cargando datos del técnico...
+          {t('common.loading')}
         </Typography>
       </Container>
     );
@@ -207,7 +209,7 @@ function EditTecnico() {
           startIcon={<ArrowBackIcon />}
           sx={{ mt: 2 }}
         >
-          Volver a Técnicos
+          {t('technician.backToList')}
         </Button>
       </Container>
     );
@@ -218,7 +220,7 @@ function EditTecnico() {
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h4" component="h1">
-            Modificar Técnico
+            {t('technician.edit')}
           </Typography>
           <Button
             component={RouterLink}
@@ -226,13 +228,13 @@ function EditTecnico() {
             startIcon={<ArrowBackIcon />}
             variant="outlined"
           >
-            Volver
+            {t('common.back')}
           </Button>
         </Box>
 
         {success && (
           <Alert severity="success" sx={{ mb: 3 }}>
-            ¡Técnico actualizado exitosamente! Redirigiendo...
+            {t('technician.updatedSuccess')} {t('technician.redirecting')}
           </Alert>
         )}
 
@@ -249,7 +251,7 @@ function EditTecnico() {
               <TextField
                 required
                 fullWidth
-                label="Nombre Completo"
+                label={t('technician.name')}
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
@@ -264,7 +266,7 @@ function EditTecnico() {
               <TextField
                 required
                 fullWidth
-                label="Correo Electrónico"
+                label={t('technician.email')}
                 name="correo"
                 type="email"
                 value={formData.correo}
@@ -279,7 +281,7 @@ function EditTecnico() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Teléfono"
+                label={t('technician.phone')}
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
@@ -290,16 +292,16 @@ function EditTecnico() {
             {/* Disponible */}
             <Grid item xs={12} md={6}>
               <FormControl fullWidth required>
-                <InputLabel>Estado</InputLabel>
+                <InputLabel>{t('technician.availability')}</InputLabel>
                 <Select
                   name="disponible"
                   value={formData.disponible}
                   onChange={handleChange}
-                  label="Estado"
+                  label={t('technician.availability')}
                   disabled={submitting}
                 >
-                  <MenuItem value={1}>Disponible</MenuItem>
-                  <MenuItem value={0}>No Disponible</MenuItem>
+                  <MenuItem value={1}>{t('technician.available')}</MenuItem>
+                  <MenuItem value={0}>{t('technician.notAvailable')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -307,12 +309,12 @@ function EditTecnico() {
             {/* Especialidades */}
             <Grid item xs={12} md={6}>
               <FormControl fullWidth required error={!!errors.especialidades}>
-                <InputLabel>Especialidades</InputLabel>
+                <InputLabel>{t('technician.specialties')}</InputLabel>
                 <Select
                   multiple
                   value={formData.especialidades}
                   onChange={handleEspecialidadesChange}
-                  input={<OutlinedInput label="Especialidades" />}
+                  input={<OutlinedInput label={t('technician.specialties')} />}
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {selected.map((value) => {
@@ -364,7 +366,7 @@ function EditTecnico() {
                   variant="outlined"
                   disabled={submitting}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -372,7 +374,7 @@ function EditTecnico() {
                   startIcon={submitting ? <CircularProgress size={20} /> : <SaveIcon />}
                   disabled={submitting}
                 >
-                  {submitting ? 'Guardando...' : 'Guardar Cambios'}
+                  {submitting ? t('common.saving') : t('common.saveChanges')}
                 </Button>
               </Box>
             </Grid>

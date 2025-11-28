@@ -20,8 +20,10 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import { useTranslation } from 'react-i18next';
 
 export default function ListTickets() {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -56,6 +58,15 @@ export default function ListTickets() {
     }
   };
 
+  const getPrioridadLabel = (prioridad) => {
+    switch (prioridad?.toLowerCase()) {
+      case 'alta': return t('ticket.high');
+      case 'media': return t('ticket.medium');
+      case 'baja': return t('ticket.low');
+      default: return prioridad;
+    }
+  };
+
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case 'resuelto': return 'success';
@@ -67,12 +78,23 @@ export default function ListTickets() {
     }
   };
 
+  const getEstadoLabel = (estado) => {
+    switch (estado?.toLowerCase()) {
+      case 'resuelto': return t('ticket.resolved');
+      case 'cerrado': return t('ticket.closed');
+      case 'en_proceso': return t('ticket.inProgress');
+      case 'asignado': return t('ticket.assigned');
+      case 'pendiente': return t('ticket.pending');
+      default: return estado;
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 3 }}>
       <Paper sx={{ p: 2 }} elevation={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" component="h2">
-            Tickets
+            {t('ticket.list')}
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -82,34 +104,34 @@ export default function ListTickets() {
               component={RouterLink}
               to="/ticket/crear"
             >
-              Crear Ticket
+              {t('ticket.new')}
             </Button>
             
             {/* Selector de Rol (solo para desarrollo/pruebas) */}
             <TextField
-              label="Usuario ID"
+              label={t('ticket.userId')}
               value={usuarioId}
               size="small"
               disabled
               sx={{ width: 120 }}
             />
             <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>Rol</InputLabel>
+              <InputLabel>{t('ticket.role')}</InputLabel>
               <Select
                 value={rol}
-                label="Rol"
+                label={t('ticket.role')}
                 onChange={(e) => setRol(e.target.value)}
               >
-                <MenuItem value="Administrador">Administrador</MenuItem>
-                <MenuItem value="Cliente">Cliente</MenuItem>
-                <MenuItem value="Tecnico">Técnico</MenuItem>
+                <MenuItem value="Administrador">{t('ticket.administrator')}</MenuItem>
+                <MenuItem value="Cliente">{t('ticket.client')}</MenuItem>
+                <MenuItem value="Tecnico">{t('ticket.technicianRole')}</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </Box>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Mostrando tickets para: <strong>{rol === 'Tecnico' ? 'Técnico' : rol}</strong> (ID: {usuarioId})
+          {t('ticket.showingFor')}: <strong>{rol === 'Tecnico' ? t('ticket.technicianRole') : rol === 'Administrador' ? t('ticket.administrator') : t('ticket.client')}</strong> (ID: {usuarioId})
         </Typography>
 
         {loading ? (
@@ -117,36 +139,36 @@ export default function ListTickets() {
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Typography color="error">Error al cargar tickets</Typography>
+          <Typography color="error">{t('ticket.loadingError')}</Typography>
         ) : data.length === 0 ? (
-          <Typography color="text.secondary">No hay tickets registrados</Typography>
+          <Typography color="text.secondary">{t('ticket.loadingError')}</Typography>
         ) : (
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell><strong>Título</strong></TableCell>
-                  <TableCell><strong>Categoría</strong></TableCell>
-                  <TableCell><strong>Prioridad</strong></TableCell>
-                  <TableCell><strong>Estado</strong></TableCell>
-                  <TableCell><strong>Acciones</strong></TableCell>
+                  <TableCell><strong>{t('ticket.ticketTitle')}</strong></TableCell>
+                  <TableCell><strong>{t('ticket.category')}</strong></TableCell>
+                  <TableCell><strong>{t('ticket.priority')}</strong></TableCell>
+                  <TableCell><strong>{t('ticket.state')}</strong></TableCell>
+                  <TableCell><strong>{t('common.actions')}</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {data.map((ticket) => (
                   <TableRow key={ticket.id} hover>
                     <TableCell>{ticket.titulo}</TableCell>
-                    <TableCell>{ticket.categoria || 'Sin categoría'}</TableCell>
+                    <TableCell>{ticket.categoria || t('ticket.noCategory')}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={ticket.prioridad} 
+                        label={getPrioridadLabel(ticket.prioridad)} 
                         color={getPrioridadColor(ticket.prioridad)}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>
                       <Chip 
-                        label={ticket.estado} 
+                        label={getEstadoLabel(ticket.estado)} 
                         color={getEstadoColor(ticket.estado)}
                         size="small"
                         variant="outlined"
@@ -160,7 +182,7 @@ export default function ListTickets() {
                         variant="outlined"
                         size="small"
                       >
-                        Ver Detalle
+                        {t('common.viewDetail')}
                       </Button>
                     </TableCell>
                   </TableRow>

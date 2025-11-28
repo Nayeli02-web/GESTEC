@@ -19,8 +19,10 @@ import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
+import { useTranslation } from 'react-i18next';
 
 export default function ListCategorias() {
+  const { t } = useTranslation();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,7 +44,7 @@ export default function ListCategorias() {
       <Paper sx={{ p: 2 }} elevation={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h5" component="h2">
-            Categorías
+            {t('category.list')}
           </Typography>
           <Button
             variant="contained"
@@ -50,16 +52,16 @@ export default function ListCategorias() {
             component={RouterLink}
             to="/categoria/crear"
           >
-            Crear Categoría
+            {t('category.new')}
           </Button>
         </Box>
 
         {loading ? (
           <CircularProgress />
         ) : error ? (
-          <Typography color="error">Error al cargar categorías</Typography>
+          <Typography color="error">{t('category.loadingError')}</Typography>
         ) : data.length === 0 ? (
-          <Typography color="text.secondary">No hay categorías registradas</Typography>
+          <Typography color="text.secondary">{t('category.loadingError')}</Typography>
         ) : (
           <List>
             {data.map((categoria, idx) => (
@@ -67,7 +69,7 @@ export default function ListCategorias() {
                 <ListItem 
                   disablePadding
                   secondaryAction={
-                    <Tooltip title="Ver detalle">
+                    <Tooltip title={t('common.viewDetail')}>
                       <IconButton 
                         edge="end" 
                         component={RouterLink} 

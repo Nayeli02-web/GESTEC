@@ -19,8 +19,10 @@ import LabelIcon from '@mui/icons-material/Label';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import TimerIcon from '@mui/icons-material/Timer';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import { useTranslation } from 'react-i18next';
 
 export default function DetailCategoria() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [categoria, setCategoria] = useState(null);
@@ -44,7 +46,7 @@ export default function DetailCategoria() {
   // Formatear tiempo 
   const formatearTiempo = (horas) => {
     if (!horas) return 'N/A';
-    return `${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+    return t('ticket.hours', { count: horas });
   };
 
   return (
@@ -54,14 +56,14 @@ export default function DetailCategoria() {
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/categorias')}
         >
-          Volver a Categorías
+          {t('category.backToList')}
         </Button>
         <Button
           variant="contained"
           startIcon={<EditIcon />}
           onClick={() => navigate(`/categoria/${id}/editar`)}
         >
-          Editar
+          {t('common.edit')}
         </Button>
       </Box>
 
@@ -70,9 +72,9 @@ export default function DetailCategoria() {
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Alert severity="error">Error al cargar la categoría</Alert>
+        <Alert severity="error">{t('category.loadingError')}</Alert>
       ) : !categoria ? (
-        <Alert severity="warning">Categoría no encontrada</Alert>
+        <Alert severity="warning">{t('category.notFound')}</Alert>
       ) : (
         <>
           {/* Header con título */}
@@ -104,7 +106,7 @@ export default function DetailCategoria() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <LabelIcon color="primary" />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Etiquetas
+                      {t('category.tags')}
                     </Typography>
                   </Box>
                   
@@ -136,7 +138,7 @@ export default function DetailCategoria() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <PsychologyIcon color="success" />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Especialidades
+                      {t('category.specialties')}
                     </Typography>
                   </Box>
                   
@@ -166,7 +168,7 @@ export default function DetailCategoria() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                     <TimerIcon color="warning" />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      SLA - Tiempos de Servicio
+                      {t('category.sla')} - {t('category.slaConfig')}
                     </Typography>
                   </Box>
                   
@@ -175,7 +177,7 @@ export default function DetailCategoria() {
                       <Grid item xs={12} md={4}>
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50' }}>
                           <Typography variant="caption" color="text.secondary" gutterBottom>
-                            Nombre SLA
+                            {t('category.slaSelected')}
                           </Typography>
                           <Typography variant="h6" color="info.main" sx={{ fontWeight: 600 }}>
                             {categoria.sla.nombre}
@@ -186,7 +188,7 @@ export default function DetailCategoria() {
                       <Grid item xs={12} md={4}>
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
                           <Typography variant="caption" color="text.secondary" gutterBottom>
-                            Tiempo Máximo de Respuesta
+                            {t('category.responseTime')}
                           </Typography>
                           <Typography variant="h6" color="success.main" sx={{ fontWeight: 600 }}>
                             {formatearTiempo(categoria.sla.tiempo_respuesta_minutos)}
@@ -197,7 +199,7 @@ export default function DetailCategoria() {
                       <Grid item xs={12} md={4}>
                         <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.50' }}>
                           <Typography variant="caption" color="text.secondary" gutterBottom>
-                            Tiempo Máximo de Resolución
+                            {t('category.resolutionTime')}
                           </Typography>
                           <Typography variant="h6" color="warning.main" sx={{ fontWeight: 600 }}>
                             {formatearTiempo(categoria.sla.tiempo_resolucion_minutos)}
@@ -219,7 +221,7 @@ export default function DetailCategoria() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                    Estadísticas de Tickets
+                    {t('category.ticketStats')}
                   </Typography>
                   
                   <Paper variant="outlined" sx={{ p: 3, bgcolor: 'grey.50', textAlign: 'center' }}>
@@ -234,7 +236,7 @@ export default function DetailCategoria() {
                       <Box sx={{ mt: 3 }}>
                         <Divider sx={{ mb: 2 }} />
                         <Typography variant="subtitle2" gutterBottom>
-                          Distribución por Estado:
+                          {t('category.byState')}:
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'center', mt: 2 }}>
                           {categoria.estadisticas.map((stat, idx) => (

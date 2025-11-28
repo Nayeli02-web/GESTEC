@@ -19,8 +19,10 @@ import ImageListItem from '@mui/material/ImageListItem';
 import Alert from '@mui/material/Alert';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { useTranslation } from 'react-i18next';
 
 export default function DetailTicket() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [ticket, setTicket] = useState(null);
@@ -50,6 +52,15 @@ export default function DetailTicket() {
     }
   };
 
+  const getPrioridadLabel = (prioridad) => {
+    switch (prioridad?.toLowerCase()) {
+      case 'alta': return t('ticket.high');
+      case 'media': return t('ticket.medium');
+      case 'baja': return t('ticket.low');
+      default: return prioridad;
+    }
+  };
+
   const getEstadoColor = (estado) => {
     switch (estado?.toLowerCase()) {
       case 'resuelto': return 'success';
@@ -61,6 +72,17 @@ export default function DetailTicket() {
     }
   };
 
+  const getEstadoLabel = (estado) => {
+    switch (estado?.toLowerCase()) {
+      case 'resuelto': return t('ticket.resolved');
+      case 'cerrado': return t('ticket.closed');
+      case 'en_proceso': return t('ticket.inProgress');
+      case 'asignado': return t('ticket.assigned');
+      case 'pendiente': return t('ticket.pending');
+      default: return estado;
+    }
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
       <Button
@@ -68,7 +90,7 @@ export default function DetailTicket() {
         onClick={() => navigate('/tickets')}
         sx={{ mb: 2 }}
       >
-        Volver a Tickets
+        {t('ticket.backToList')}
       </Button>
 
       {loading ? (
@@ -78,9 +100,9 @@ export default function DetailTicket() {
           </Box>
         </Paper>
       ) : error ? (
-        <Alert severity="error">Error al cargar el ticket</Alert>
+        <Alert severity="error">{t('ticket.loadingError')}</Alert>
       ) : !ticket ? (
-        <Alert severity="warning">Ticket no encontrado</Alert>
+        <Alert severity="warning">{t('ticket.notFound')}</Alert>
       ) : (
         <>
           {/* Encabezado Principal */}
@@ -91,17 +113,17 @@ export default function DetailTicket() {
                   {ticket.titulo}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Ticket #{ticket.id} • Creado: {new Date(ticket.fecha_creacion).toLocaleString()}
+                  Ticket #{ticket.id} • {t('ticket.creationDate')}: {new Date(ticket.fecha_creacion).toLocaleString()}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'flex-end' }}>
                 <Chip 
-                  label={`Prioridad: ${ticket.prioridad}`} 
+                  label={`${t('ticket.priority')}: ${getPrioridadLabel(ticket.prioridad)}`} 
                   color={getPrioridadColor(ticket.prioridad)}
                   size="medium"
                 />
                 <Chip 
-                  label={`Estado: ${ticket.estado}`} 
+                  label={`${t('ticket.state')}: ${getEstadoLabel(ticket.estado)}`} 
                   color={getEstadoColor(ticket.estado)}
                   size="medium"
                   variant="outlined"
@@ -113,10 +135,10 @@ export default function DetailTicket() {
 
             {/* Descripción */}
             <Typography variant="h6" gutterBottom>
-              Descripción
+              {t('ticket.description')}
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph>
-              {ticket.descripcion || 'Sin descripción'}
+              {ticket.descripcion || t('ticket.noDescription')}
             </Typography>
           </Paper>
 
@@ -126,9 +148,9 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Usuario Solicitante
+                    {t('ticket.requestingUser')}
                   </Typography>
-                  <Typography variant="body1"><strong>Nombre:</strong> {ticket.cliente?.nombre}</Typography>
+                  <Typography variant="body1"><strong>{t('technician.name')}:</strong> {ticket.cliente?.nombre}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {ticket.cliente?.correo}
                   </Typography>
@@ -140,18 +162,18 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Técnico Asignado
+                    {t('ticket.assignedTechnician')}
                   </Typography>
                   {ticket.tecnico ? (
                     <>
-                      <Typography variant="body1"><strong>Nombre:</strong> {ticket.tecnico.nombre}</Typography>
+                      <Typography variant="body1"><strong>{t('technician.name')}:</strong> {ticket.tecnico.nombre}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         {ticket.tecnico.correo}
                       </Typography>
                     </>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      Sin técnico asignado
+                      {t('ticket.noTechnician')}
                     </Typography>
                   )}
                 </CardContent>
@@ -163,10 +185,10 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Categoría Asociada
+                    {t('ticket.category')}
                   </Typography>
                   <Chip 
-                    label={ticket.categoria?.nombre || 'Sin categoría'} 
+                    label={ticket.categoria?.nombre || t('ticket.noCategory')} 
                     color="secondary" 
                     variant="outlined"
                     size="medium"
@@ -179,20 +201,20 @@ export default function DetailTicket() {
               <Card elevation={2}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom color="primary">
-                    Resolución
+                    {t('ticket.resolved')}
                   </Typography>
                   {ticket.fecha_cierre ? (
                     <>
                       <Typography variant="body2">
-                        <strong>Fecha de Cierre:</strong> {new Date(ticket.fecha_cierre).toLocaleString()}
+                        <strong>{t('ticket.closingDate')}:</strong> {new Date(ticket.fecha_cierre).toLocaleString()}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Días de Resolución:</strong> {ticket.dias_resolucion} días
+                        <strong>{t('ticket.resolutionDays')}:</strong> {ticket.dias_resolucion} {t('ticket.days')}
                       </Typography>
                     </>
                   ) : (
                     <Typography variant="body2" color="text.secondary">
-                      Ticket en proceso
+                      {t('ticket.inProcessStatus')}
                     </Typography>
                   )}
                 </CardContent>
@@ -205,12 +227,12 @@ export default function DetailTicket() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      SLA - {ticket.sla.nombre}
+                      {t('ticket.slaInfo')} - {ticket.sla.nombre}
                     </Typography>
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={4}>
                         <Typography variant="body2" color="text.secondary">
-                          SLA Respuesta
+                          {t('ticket.responseTime')}
                         </Typography>
                         <Typography variant="h6">{ticket.sla.tiempo_respuesta} min</Typography>
                         {ticket.cumplimiento_respuesta && (
@@ -219,14 +241,14 @@ export default function DetailTicket() {
                               <>
                                 <CheckCircleIcon color="success" fontSize="small" />
                                 <Typography variant="body2" color="success.main">
-                                  {ticket.cumplimiento_respuesta}
+                                  {t('ticket.fulfilled')}
                                 </Typography>
                               </>
                             ) : (
                               <>
                                 <CancelIcon color="error" fontSize="small" />
                                 <Typography variant="body2" color="error.main">
-                                  {ticket.cumplimiento_respuesta}
+                                  {t('ticket.notFulfilled')}
                                 </Typography>
                               </>
                             )}
@@ -235,7 +257,7 @@ export default function DetailTicket() {
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <Typography variant="body2" color="text.secondary">
-                          SLA Resolución
+                          {t('ticket.resolutionTime')}
                         </Typography>
                         <Typography variant="h6">{ticket.sla.tiempo_resolucion} min</Typography>
                         {ticket.cumplimiento_resolucion && (
@@ -244,14 +266,14 @@ export default function DetailTicket() {
                               <>
                                 <CheckCircleIcon color="success" fontSize="small" />
                                 <Typography variant="body2" color="success.main">
-                                  {ticket.cumplimiento_resolucion}
+                                  {t('ticket.fulfilled')}
                                 </Typography>
                               </>
                             ) : (
                               <>
                                 <CancelIcon color="error" fontSize="small" />
                                 <Typography variant="body2" color="error.main">
-                                  {ticket.cumplimiento_resolucion}
+                                  {t('ticket.notFulfilled')}
                                 </Typography>
                               </>
                             )}
@@ -270,7 +292,7 @@ export default function DetailTicket() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      Historial de Estados
+                      {t('ticket.history')}
                     </Typography>
                     {ticket.historial.map((cambio, idx) => (
                       <Box key={cambio.id} sx={{ mb: 2, pb: 2, borderBottom: idx < ticket.historial.length - 1 ? '1px solid #eee' : 'none' }}>
@@ -302,7 +324,7 @@ export default function DetailTicket() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      Evidencias e Imágenes
+                      {t('ticket.evidence')}
                     </Typography>
                     <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} rowHeight={164}>
                       {ticket.imagenes.map((img) => (
@@ -327,7 +349,7 @@ export default function DetailTicket() {
                 <Card elevation={2}>
                   <CardContent>
                     <Typography variant="h6" gutterBottom color="primary">
-                      Valoración del Servicio
+                      {t('ticket.ratings')}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                       <Rating 
@@ -345,7 +367,7 @@ export default function DetailTicket() {
                       </Typography>
                     )}
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                      Valorado el: {new Date(ticket.valoracion.fecha).toLocaleString()}
+                      {t('ticket.ratedOn')}: {new Date(ticket.valoracion.fecha).toLocaleString()}
                     </Typography>
                   </CardContent>
                 </Card>

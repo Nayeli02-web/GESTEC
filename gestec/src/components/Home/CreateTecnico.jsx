@@ -19,8 +19,10 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
+import { useTranslation } from 'react-i18next';
 
 export default function CreateTecnico() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
@@ -77,17 +79,17 @@ export default function CreateTecnico() {
     const newErrors = {};
     
     if (!formData.nombre.trim()) {
-      newErrors.nombre = 'El nombre es obligatorio';
+      newErrors.nombre = t('common.required');
     }
     
     if (!formData.correo.trim()) {
-      newErrors.correo = 'El correo es obligatorio';
+      newErrors.correo = t('common.required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) {
-      newErrors.correo = 'El formato del correo no es válido';
+      newErrors.correo = t('common.invalidEmail');
     }
     
     if (formData.especialidades.length === 0) {
-      newErrors.especialidades = 'Debe seleccionar al menos una especialidad';
+      newErrors.especialidades = t('technician.minOneSpecialty');
     }
     
     setErrors(newErrors);
@@ -112,7 +114,7 @@ export default function CreateTecnico() {
       }, 1500);
     } catch (err) {
       console.error('Error al crear técnico:', err);
-      setError('Error al crear el técnico. Verifique que el correo no esté registrado.');
+      setError(t('technician.createError'));
     } finally {
       setLoading(false);
     }
@@ -125,12 +127,12 @@ export default function CreateTecnico() {
         onClick={() => navigate('/tecnicos')}
         sx={{ mb: 2 }}
       >
-        Volver a Técnicos
+        {t('technician.backToList')}
       </Button>
 
       <Paper sx={{ p: 3 }} elevation={3}>
         <Typography variant="h4" component="h1" gutterBottom color="primary">
-          Crear Nuevo Técnico
+          {t('technician.new')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Complete el formulario para registrar un nuevo técnico en el sistema
@@ -144,7 +146,7 @@ export default function CreateTecnico() {
 
         {success && (
           <Alert severity="success" sx={{ mb: 2 }}>
-            Técnico creado exitosamente. Redirigiendo...
+            {t('technician.createdSuccess')} {t('technician.redirecting')}
           </Alert>
         )}
 
@@ -155,13 +157,14 @@ export default function CreateTecnico() {
               <TextField
                 required
                 fullWidth
-                label="Nombre Completo"
+                label={t('technician.name')}
                 name="nombre"
                 value={formData.nombre}
                 onChange={handleChange}
                 error={!!errors.nombre}
                 helperText={errors.nombre}
                 disabled={loading}
+                placeholder={t('technician.namePlaceholder')}
               />
             </Grid>
 
@@ -171,13 +174,14 @@ export default function CreateTecnico() {
                 required
                 fullWidth
                 type="email"
-                label="Correo Electrónico"
+                label={t('technician.email')}
                 name="correo"
                 value={formData.correo}
                 onChange={handleChange}
                 error={!!errors.correo}
                 helperText={errors.correo}
                 disabled={loading}
+                placeholder={t('technician.emailPlaceholder')}
               />
             </Grid>
 
@@ -185,19 +189,20 @@ export default function CreateTecnico() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Teléfono"
+                label={t('technician.phone')}
                 name="telefono"
                 value={formData.telefono}
                 onChange={handleChange}
                 disabled={loading}
                 helperText="Opcional"
+                placeholder={t('technician.phonePlaceholder')}
               />
             </Grid>
 
             {/* Especialidades */}
             <Grid item xs={12}>
               <FormControl fullWidth required error={!!errors.especialidades}>
-                <InputLabel id="especialidades-label">Especialidades</InputLabel>
+                <InputLabel id="especialidades-label">{t('technician.specialties')}</InputLabel>
                 {loadingEspecialidades ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
                     <CircularProgress size={24} />
@@ -238,18 +243,18 @@ export default function CreateTecnico() {
             {/* Estado (Disponibilidad) */}
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel id="estado-label">Estado</InputLabel>
+                <InputLabel id="estado-label">{t('technician.availability')}</InputLabel>
                 <Select
                   labelId="estado-label"
                   id="disponible"
                   name="disponible"
                   value={formData.disponible}
-                  label="Estado"
+                  label={t('technician.availability')}
                   onChange={handleChange}
                   disabled={loading}
                 >
-                  <MenuItem value={1}>Disponible</MenuItem>
-                  <MenuItem value={0}>No Disponible</MenuItem>
+                  <MenuItem value={1}>{t('technician.available')}</MenuItem>
+                  <MenuItem value={0}>{t('technician.notAvailable')}</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -273,7 +278,7 @@ export default function CreateTecnico() {
                   onClick={() => navigate('/tecnicos')}
                   disabled={loading}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -281,7 +286,7 @@ export default function CreateTecnico() {
                   startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
                   disabled={loading}
                 >
-                  {loading ? 'Guardando...' : 'Crear Técnico'}
+                  {loading ? t('common.saving') : t('technician.new')}
                 </Button>
               </Box>
             </Grid>

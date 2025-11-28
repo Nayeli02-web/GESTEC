@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import TicketService from '../../services/TicketService';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
@@ -38,6 +39,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WarningIcon from '@mui/icons-material/Warning';
 
 export default function AsignacionesTecnico() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,12 +104,21 @@ export default function AsignacionesTecnico() {
 
   const getEstadoLabel = (estado) => {
     switch (estado?.toLowerCase()) {
-      case 'pendiente': return 'Pendiente';
-      case 'asignado': return 'Asignado';
-      case 'en_proceso': return 'En Proceso';
-      case 'resuelto': return 'Resuelto';
-      case 'cerrado': return 'Cerrado';
+      case 'pendiente': return t('ticket.pending');
+      case 'asignado': return t('ticket.assigned');
+      case 'en_proceso': return t('ticket.inProgress');
+      case 'resuelto': return t('ticket.resolved');
+      case 'cerrado': return t('ticket.closed');
       default: return estado;
+    }
+  };
+
+  const getPrioridadLabel = (prioridad) => {
+    switch (prioridad?.toLowerCase()) {
+      case 'alta': return t('ticket.high');
+      case 'media': return t('ticket.medium');
+      case 'baja': return t('ticket.low');
+      default: return prioridad;
     }
   };
 
@@ -123,7 +134,7 @@ export default function AsignacionesTecnico() {
 
   // Generar opciones de semanas 
   const generarOpcionesSemanas = () => {
-    const semanas = [{ value: 'todas', label: 'Todas las semanas' }];
+    const semanas = [{ value: 'todas', label: t('assignment.allWeeks') }];
     const hoy = new Date();
     
     for (let i = 0; i < 5; i++) {
@@ -133,7 +144,7 @@ export default function AsignacionesTecnico() {
       finSemana.setDate(inicioSemana.getDate() + 6);
       
       const label = i === 0 
-        ? 'Semana actual' 
+        ? t('assignment.currentWeek') 
         : `${inicioSemana.getDate()}/${inicioSemana.getMonth() + 1} - ${finSemana.getDate()}/${finSemana.getMonth() + 1}`;
       
       semanas.push({
@@ -217,7 +228,7 @@ export default function AsignacionesTecnico() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 2 }}>
             {getCategoriaIcon(ticket.categoria)}
             <Typography variant="body2" color="text.secondary">
-              {ticket.categoria || 'Sin categoría'}
+              {ticket.categoria || t('ticket.noCategory')}
             </Typography>
           </Box>
 
@@ -227,8 +238,8 @@ export default function AsignacionesTecnico() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <WarningIcon sx={{ fontSize: 18, color: getPrioridadColor(ticket.prioridad) }} />
             <Typography variant="body2">
-              Prioridad: <strong style={{ color: getPrioridadColor(ticket.prioridad) }}>
-                {ticket.prioridad?.toUpperCase()}
+              {t('ticket.priority')}: <strong style={{ color: getPrioridadColor(ticket.prioridad) }}>
+                {getPrioridadLabel(ticket.prioridad).toUpperCase()}
               </strong>
             </Typography>
           </Box>
@@ -238,7 +249,7 @@ export default function AsignacionesTecnico() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <AccessTimeIcon sx={{ fontSize: 14 }} />
-                Tiempo restante SLA
+                {t('assignment.remainingTime')}
               </Typography>
               <Typography variant="caption" fontWeight="bold" color={`${sla.color}.main`}>
                 {sla.texto}
@@ -261,13 +272,13 @@ export default function AsignacionesTecnico() {
             startIcon={<VisibilityIcon />}
             onClick={() => navigate(`/ticket/${ticket.id}`, { state: { from: '/asignaciones' } })}
           >
-            Ver Detalle
+            {t('common.viewDetail')}
           </Button>
           <Box>
             <IconButton 
               size="small" 
               color="primary" 
-              title="Cambiar estado"
+              title={t('assignment.changeState')}
               disabled
             >
               <EditIcon fontSize="small" />
@@ -275,7 +286,7 @@ export default function AsignacionesTecnico() {
             <IconButton 
               size="small" 
               color="primary" 
-              title="Agregar comentario"
+              title={t('assignment.addComment')}
               disabled
             >
               <CommentIcon fontSize="small" />
@@ -295,22 +306,22 @@ export default function AsignacionesTecnico() {
             <AssignmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />
             <Box>
               <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 0 }}>
-                Mis Asignaciones
+                {t('assignment.myAssignments')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Vista de tickets asignados organizados por estado y semana
+                {t('assignment.viewDescription')}
               </Typography>
             </Box>
           </Box>
           
           {/* Selector de Semana */}
           <FormControl sx={{ minWidth: 220 }} size="small">
-            <InputLabel id="semana-select-label">Filtrar por semana</InputLabel>
+            <InputLabel id="semana-select-label">{t('assignment.filterByWeek')}</InputLabel>
             <Select
               labelId="semana-select-label"
               id="semana-select"
               value={semanaSeleccionada}
-              label="Filtrar por semana"
+              label={t('assignment.filterByWeek')}
               onChange={(e) => setSemanaSeleccionada(e.target.value)}
             >
               {opcionesSemanas.map((semana) => (
@@ -332,9 +343,9 @@ export default function AsignacionesTecnico() {
           indicatorColor="primary"
           textColor="primary"
         >
-          <Tab label="PENDIENTES" />
-          <Tab label="EN PROCESO" />
-          <Tab label="RESUELTOS" />
+          <Tab label={t('assignment.pending').toUpperCase()} />
+          <Tab label={t('assignment.inProgress').toUpperCase()} />
+          <Tab label={t('assignment.resolved').toUpperCase()} />
         </Tabs>
       </Paper>
 
@@ -344,12 +355,12 @@ export default function AsignacionesTecnico() {
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Alert severity="error">Error al cargar las asignaciones</Alert>
+        <Alert severity="error">{t('assignment.loadingError')}</Alert>
       ) : ticketsFiltrados.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <AssignmentIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
-            No hay tickets en esta categoría
+            {t('assignment.noTickets')}
           </Typography>
         </Paper>
       ) : (
@@ -357,7 +368,7 @@ export default function AsignacionesTecnico() {
           {/* Resumen */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Mostrando {ticketsFiltrados.length} ticket{ticketsFiltrados.length !== 1 ? 's' : ''}
+              {t('assignment.showing')} {ticketsFiltrados.length} ticket{ticketsFiltrados.length !== 1 ? 's' : ''}
             </Typography>
           </Box>
 
@@ -375,12 +386,12 @@ export default function AsignacionesTecnico() {
       {/* Leyenda */}
       <Paper sx={{ p: 2, mt: 3 }}>
         <Typography variant="subtitle2" gutterBottom>
-          Leyenda de Prioridades:
+          {t('assignment.priorityLegend')}:
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Chip label="Alta" size="small" sx={{ bgcolor: '#d32f2f', color: 'white' }} />
-          <Chip label="Media" size="small" sx={{ bgcolor: '#f57c00', color: 'white' }} />
-          <Chip label="Baja" size="small" sx={{ bgcolor: '#388e3c', color: 'white' }} />
+          <Chip label={t('ticket.high')} size="small" sx={{ bgcolor: '#d32f2f', color: 'white' }} />
+          <Chip label={t('ticket.medium')} size="small" sx={{ bgcolor: '#f57c00', color: 'white' }} />
+          <Chip label={t('ticket.low')} size="small" sx={{ bgcolor: '#388e3c', color: 'white' }} />
         </Box>
       </Paper>
     </Container>

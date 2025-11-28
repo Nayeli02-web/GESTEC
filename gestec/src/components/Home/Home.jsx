@@ -10,8 +10,10 @@ import CategoryIcon from '@mui/icons-material/Category';
 import SpeedIcon from '@mui/icons-material/Speed';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { useTranslation } from 'react-i18next';
 
 export function Home() {
+  const { t } = useTranslation();
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       {/* Hero Section */}
@@ -32,28 +34,27 @@ export function Home() {
           gutterBottom
           sx={{ fontWeight: 700 }}
         >
-          GESTEC
+          {t('home.title')}
         </Typography>
         <Typography
           variant="h5"
           align="center"
           sx={{ mb: 3, opacity: 0.95 }}
         >
-          Sistema de Gestión de Tickets de Soporte Técnico
+          {t('home.subtitle')}
         </Typography>
         <Typography
           variant="body1"
           align="center"
           sx={{ maxWidth: 800, mx: 'auto', opacity: 0.9 }}
         >
-          Gestiona eficientemente las solicitudes de soporte técnico, asigna tickets a especialistas,
-          monitorea los tiempos de respuesta y mejora la satisfacción del cliente.
+          {t('home.description')}
         </Typography>
       </Paper>
 
       {/* Características principales */}
       <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
-        Características Principales
+        {t('home.mainFeatures')}
       </Typography>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -72,10 +73,10 @@ export function Home() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <AssignmentIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                Gestión de Tickets
+                {t('home.ticketManagement')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Crea, asigna y rastrea tickets de soporte técnico de manera organizada y eficiente.
+                {t('home.ticketManagementDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -96,10 +97,10 @@ export function Home() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <SupportAgentIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                Equipo Técnico
+                {t('home.technicalTeam')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Administra especialistas, asigna tickets según especialidad y monitorea cargas de trabajo.
+                {t('home.technicalTeamDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -120,10 +121,10 @@ export function Home() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <AccessTimeIcon sx={{ fontSize: 60, color: 'warning.main', mb: 2 }} />
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                Control de SLA
+                {t('home.slaControl')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Monitorea tiempos de respuesta y resolución con indicadores visuales de cumplimiento.
+                {t('home.slaControlDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -144,10 +145,10 @@ export function Home() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <CategoryIcon sx={{ fontSize: 60, color: 'info.main', mb: 2 }} />
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                Categorización
+                {t('home.categorization')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Organiza tickets por categorías con niveles de prioridad y SLAs personalizados.
+                {t('home.categorizationDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -168,10 +169,10 @@ export function Home() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <SpeedIcon sx={{ fontSize: 60, color: 'error.main', mb: 2 }} />
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                Dashboard en Tiempo Real
+                {t('home.realtimeDashboard')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Visualiza métricas de rendimiento, tickets activos y estadísticas del equipo.
+                {t('home.realtimeDashboardDesc')}
               </Typography>
             </CardContent>
           </Card>
@@ -192,10 +193,10 @@ export function Home() {
             <CardContent sx={{ textAlign: 'center', py: 4 }}>
               <CheckCircleIcon sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
-                Seguimiento Completo
+                {t('home.completeTracking')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Historial de cambios, evidencias fotográficas y valoraciones de servicio.
+                {t('home.completeTrackingDesc')}
               </Typography>
             </CardContent>
           </Card>

@@ -23,11 +23,13 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TicketService from '../../services/TicketService';
 import EtiquetaService from '../../services/EtiquetaService';
+import { useTranslation } from 'react-i18next';
 
 // Variable de usuario simulado (mientras no hay autenticación)
 const USUARIO_ID = 1; // ID del usuario logueado
 
 function CreateTicket() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -112,21 +114,21 @@ function CreateTicket() {
     
     // Validar título
     if (!formData.titulo.trim()) {
-      newErrors.titulo = 'El título es obligatorio';
+      newErrors.titulo = t('ticket.validationTitle');
     } else if (formData.titulo.trim().length < 5) {
-      newErrors.titulo = 'El título debe tener al menos 5 caracteres';
+      newErrors.titulo = t('ticket.titleMin5');
     }
     
     // Validar descripción
     if (!formData.descripcion.trim()) {
-      newErrors.descripcion = 'La descripción es obligatoria';
+      newErrors.descripcion = t('ticket.validationDescription');
     } else if (formData.descripcion.trim().length < 10) {
-      newErrors.descripcion = 'La descripción debe tener al menos 10 caracteres';
+      newErrors.descripcion = t('ticket.descriptionMin10');
     }
     
     // Validar etiqueta
     if (!formData.etiqueta_id) {
-      newErrors.etiqueta_id = 'Debe seleccionar una etiqueta';
+      newErrors.etiqueta_id = t('ticket.mustSelectTag');
     }
     
     setErrors(newErrors);
@@ -161,7 +163,7 @@ function CreateTicket() {
 
     } catch (err) {
       console.error('Error al crear ticket:', err);
-      setError('Error al crear el ticket. Por favor, intente nuevamente.');
+      setError(t('ticket.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -172,7 +174,7 @@ function CreateTicket() {
       <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
-          Cargando formulario...
+          {t('ticket.loadingData')}
         </Typography>
       </Container>
     );
@@ -183,7 +185,7 @@ function CreateTicket() {
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="h4" component="h1">
-            Crear Nuevo Ticket
+            {t('ticket.new')}
           </Typography>
           <Button
             component={RouterLink}
@@ -191,7 +193,7 @@ function CreateTicket() {
             startIcon={<ArrowBackIcon />}
             variant="outlined"
           >
-            Volver
+            {t('common.back')}
           </Button>
         </Box>
 
@@ -212,9 +214,9 @@ function CreateTicket() {
             }}
           >
             <AlertTitle sx={{ fontSize: '1.3rem', fontWeight: 'bold' }}>
-              ¡Éxito!
+              {t('ticket.createdSuccessTitle')}
             </AlertTitle>
-            Ticket creado exitosamente. Redirigiendo a la lista de tickets...
+            {t('ticket.createdSuccessMsg')}
           </Alert>
         </Snackbar>
 
@@ -230,10 +232,10 @@ function CreateTicket() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Usuario Solicitante"
+                label={t('ticket.requestingUser')}
                 value={usuarioInfo.nombre}
                 disabled
-                helperText="Usuario actual del sistema"
+                helperText={t('ticket.currentUser')}
               />
             </Grid>
 
@@ -241,10 +243,10 @@ function CreateTicket() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Correo"
+                label={t('ticket.email')}
                 value={usuarioInfo.correo}
                 disabled
-                helperText="Correo del usuario solicitante"
+                helperText={t('ticket.requestingUserEmail')}
               />
             </Grid>
 
@@ -253,7 +255,7 @@ function CreateTicket() {
               <TextField
                 required
                 fullWidth
-                label="Título del Ticket"
+                label={t('ticket.ticketTitle')}
                 name="titulo"
                 value={formData.titulo}
                 onChange={handleChange}
@@ -261,6 +263,7 @@ function CreateTicket() {
                 helperText={errors.titulo || 'Resumen breve del problema'}
                 disabled={submitting}
                 inputProps={{ maxLength: 150 }}
+                placeholder={t('ticket.titlePlaceholder')}
               />
             </Grid>
 
@@ -271,7 +274,7 @@ function CreateTicket() {
                 fullWidth
                 multiline
                 rows={4}
-                label="Descripción"
+                label={t('ticket.description')}
                 name="descripcion"
                 value={formData.descripcion}
                 onChange={handleChange}
@@ -279,23 +282,24 @@ function CreateTicket() {
                 helperText={errors.descripcion || 'Describa detalladamente el problema'}
                 disabled={submitting}
                 inputProps={{ maxLength: 250 }}
+                placeholder={t('ticket.descriptionPlaceholder')}
               />
             </Grid>
 
             {/* Prioridad */}
             <Grid item xs={12} md={6}>
               <FormControl fullWidth required>
-                <InputLabel>Prioridad</InputLabel>
+                <InputLabel>{t('ticket.priority')}</InputLabel>
                 <Select
                   name="prioridad"
                   value={formData.prioridad}
                   onChange={handleChange}
-                  label="Prioridad"
+                  label={t('ticket.priority')}
                   disabled={submitting}
                 >
-                  <MenuItem value="baja">Baja</MenuItem>
-                  <MenuItem value="media">Media</MenuItem>
-                  <MenuItem value="alta">Alta</MenuItem>
+                  <MenuItem value="baja">{t('ticket.low')}</MenuItem>
+                  <MenuItem value="media">{t('ticket.medium')}</MenuItem>
+                  <MenuItem value="alta">{t('ticket.high')}</MenuItem>
                 </Select>
                 <FormHelperText>Nivel de urgencia del ticket</FormHelperText>
               </FormControl>
@@ -304,15 +308,15 @@ function CreateTicket() {
             {/* Etiqueta */}
             <Grid item xs={12} md={6}>
               <FormControl fullWidth required error={!!errors.etiqueta_id}>
-                <InputLabel>Etiqueta</InputLabel>
+                <InputLabel>{t('ticket.tag')}</InputLabel>
                 <Select
                   value={formData.etiqueta_id}
                   onChange={handleEtiquetaChange}
-                  label="Etiqueta"
+                  label={t('ticket.tag')}
                   disabled={submitting}
                 >
                   <MenuItem value="">
-                    <em>Seleccione una etiqueta</em>
+                    <em>{t('ticket.selectTag')}</em>
                   </MenuItem>
                   {etiquetas.map((etiqueta) => (
                     <MenuItem key={etiqueta.id} value={etiqueta.id}>
@@ -330,10 +334,10 @@ function CreateTicket() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Categoría Asignada"
+                label={t('ticket.category')}
                 value={formData.categoria_nombre || 'Seleccione una etiqueta primero'}
                 disabled
-                helperText="Categoría determinada por la etiqueta seleccionada"
+                helperText={t('ticket.autoDetermined')}
               />
             </Grid>
 
@@ -341,10 +345,10 @@ function CreateTicket() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Fecha de Creación"
+                label={t('ticket.creationDate')}
                 value={formData.fecha_creacion}
                 disabled
-                helperText="Fecha y hora actual"
+                helperText={t('ticket.currentDateTime')}
               />
             </Grid>
 
@@ -352,10 +356,10 @@ function CreateTicket() {
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label="Estado Inicial"
-                value="Pendiente"
+                label={t('ticket.state')}
+                value={t('ticket.pending')}
                 disabled
-                helperText="El ticket se creará con estado 'Pendiente'"
+                helperText={t('ticket.alwaysPending')}
               />
             </Grid>
 
@@ -368,7 +372,7 @@ function CreateTicket() {
                   variant="outlined"
                   disabled={submitting}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="submit"
@@ -376,7 +380,7 @@ function CreateTicket() {
                   startIcon={submitting ? <CircularProgress size={20} /> : <SaveIcon />}
                   disabled={submitting}
                 >
-                  {submitting ? 'Creando...' : 'Crear Ticket'}
+                  {submitting ? t('ticket.creating') : t('ticket.createTicket')}
                 </Button>
               </Box>
             </Grid>
