@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import TicketService from '../../services/TicketService';
+import UpdateStatusDialog from '../Ticket/UpdateStatusDialog';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -17,6 +18,7 @@ import IconButton from '@mui/material/IconButton';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
@@ -46,6 +48,9 @@ export default function AsignacionesTecnico() {
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [semanaSeleccionada, setSemanaSeleccionada] = useState('todas');
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
   
   // TODO: En producción, obtener del contexto de autenticación
   const usuarioId = 1;
@@ -66,6 +71,25 @@ export default function AsignacionesTecnico() {
         setError(err);
       })
       .finally(() => setLoading(false));
+  };
+
+  const handleUpdateStatus = async (data) => {
+    try {
+      await TicketService.updateEstado(selectedTicket.id, data);
+      setSuccessMessage(t('ticket.updateSuccess') || 'Estado del ticket actualizado exitosamente');
+      // Recargar tickets para ver los cambios
+      cargarTickets();
+      setOpenUpdateDialog(false);
+      setSelectedTicket(null);
+    } catch (err) {
+      console.error('Error al actualizar estado:', err);
+      throw err;
+    }
+  };
+
+  const handleOpenUpdateDialog = (ticket) => {
+    setSelectedTicket(ticket);
+    setOpenUpdateDialog(true);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -274,24 +298,15 @@ export default function AsignacionesTecnico() {
           >
             {t('common.viewDetail')}
           </Button>
-          <Box>
-            <IconButton 
-              size="small" 
-              color="primary" 
-              title={t('assignment.changeState')}
-              disabled
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton 
-              size="small" 
-              color="primary" 
-              title={t('assignment.addComment')}
-              disabled
-            >
-              <CommentIcon fontSize="small" />
-            </IconButton>
-          </Box>
+          <Button 
+            size="small" 
+            variant="outlined"
+            startIcon={<EditIcon />}
+            onClick={() => handleOpenUpdateDialog(ticket)}
+            disabled={ticket.estado?.toLowerCase() === 'cerrado'}
+          >
+            {t('assignment.changeState')}
+          </Button>
         </CardActions>
       </Card>
     );
@@ -394,6 +409,29 @@ export default function AsignacionesTecnico() {
           <Chip label={t('ticket.low')} size="small" sx={{ bgcolor: '#388e3c', color: 'white' }} />
         </Box>
       </Paper>
+
+      {/* Diálogo de actualización de estado */}
+      <UpdateStatusDialog
+        open={openUpdateDialog}
+        onClose={() => {
+          setOpenUpdateDialog(false);
+          setSelectedTicket(null);
+        }}
+        ticket={selectedTicket}
+        onUpdate={handleUpdateStatus}
+      />
+
+      {/* Snackbar de éxito */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccessMessage('')}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

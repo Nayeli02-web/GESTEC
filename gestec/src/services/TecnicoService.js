@@ -1,5 +1,4 @@
-const BASE = import.meta.env.VITE_BASE_URL || '';
-const BASE_URL = BASE + 'tecnico';
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:81/GESTEC/';
 
 function parseJsonSafe(res) {
   try {
@@ -9,36 +8,27 @@ function parseJsonSafe(res) {
   }
 }
 
-async function fetchWithFallback(path, options) {
-  // First try relative (Vite proxy)
-  try {
-    const res = await fetch(path, options);
-    if (!res.ok) throw res;
-    return res;
-  } catch (e) {
-    // fallback to direct backend
-    const fallback = 'http://localhost:81/GESTEC/' + path.replace(/^\//, '');
-    const res2 = await fetch(fallback, options);
-    if (!res2.ok) throw res2;
-    return res2;
-  }
+async function fetchWithFallback(url, options) {
+  const res = await fetch(url, options);
+  if (!res.ok) throw res;
+  return res;
 }
 
 export default {
   async getById(id) {
-    const res = await fetchWithFallback(BASE_URL + '/' + id);
+    const res = await fetchWithFallback(`${BASE_URL}tecnico/${id}`);
     return res.json();
   },
   async getAll() {
-    const res = await fetchWithFallback(BASE_URL);
+    const res = await fetchWithFallback(`${BASE_URL}tecnico`);
     return res.json();
   },
   async getDetalle(id) {
-    const res = await fetchWithFallback(BASE_URL + '/detalle/' + id);
+    const res = await fetchWithFallback(`${BASE_URL}tecnico/detalle/${id}`);
     return res.json();
   },
   async update(tecnico) {
-    const res = await fetchWithFallback(BASE_URL + '/' + (tecnico.id || ''), {
+    const res = await fetchWithFallback(`${BASE_URL}tecnico/${tecnico.id || ''}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(tecnico),
@@ -46,7 +36,7 @@ export default {
     return res.json();
   },
   async create(tecnico) {
-    const res = await fetchWithFallback(BASE_URL, {
+    const res = await fetchWithFallback(`${BASE_URL}tecnico`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(tecnico),

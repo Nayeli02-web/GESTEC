@@ -23,6 +23,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TicketService from '../../services/TicketService';
 import EtiquetaService from '../../services/EtiquetaService';
+import TecnicoService from '../../services/TecnicoService';
 import { useTranslation } from 'react-i18next';
 
 // Variable de usuario simulado (mientras no hay autenticación)
@@ -36,6 +37,7 @@ function CreateTicket() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [etiquetas, setEtiquetas] = useState([]);
+  const [tecnicos, setTecnicos] = useState([]);
   const [usuarioInfo, setUsuarioInfo] = useState({ nombre: '', correo: '' });
   
   const [formData, setFormData] = useState({
@@ -44,6 +46,7 @@ function CreateTicket() {
     prioridad: 'media',
     etiqueta_id: '',
     categoria_nombre: '',
+    tecnico_id: '',
     fecha_creacion: new Date().toLocaleString('es-CR'),
   });
 
@@ -59,9 +62,14 @@ function CreateTicket() {
         setLoading(true);
         setError(null);
 
-        // Cargar etiquetas
-        const etiquetasData = await EtiquetaService.getAll();
+        // Cargar etiquetas y técnicos en paralelo
+        const [etiquetasData, tecnicosData] = await Promise.all([
+          EtiquetaService.getAll(),
+          TecnicoService.getAll()
+        ]);
+        
         setEtiquetas(etiquetasData);
+        setTecnicos(tecnicosData);
 
         // Simular información del usuario (normalmente vendría del sistema de autenticación)
         // Usuario ID 1: María López (Cliente)
@@ -152,6 +160,7 @@ function CreateTicket() {
         prioridad: formData.prioridad,
         etiqueta_id: parseInt(formData.etiqueta_id),
         cliente_id: USUARIO_ID, // Usuario simulado
+        tecnico_id: formData.tecnico_id ? parseInt(formData.tecnico_id) : null,
       };
 
       await TicketService.create(dataToSend);
@@ -339,6 +348,32 @@ function CreateTicket() {
                 disabled
                 helperText={t('ticket.autoDetermined')}
               />
+            </Grid>
+
+            {/* Técnico Asignado - Opcional */}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>{t('ticket.assignedTechnician')}</InputLabel>
+                <Select
+                  name="tecnico_id"
+                  value={formData.tecnico_id}
+                  onChange={handleChange}
+                  label={t('ticket.assignedTechnician')}
+                  disabled={submitting}
+                >
+                  <MenuItem value="">
+                    <em>{t('ticket.noTechnicianYet')}</em>
+                  </MenuItem>
+                  {tecnicos.map((tecnico) => (
+                    <MenuItem key={tecnico.id} value={tecnico.id}>
+                      {tecnico.nombre} - {tecnico.especialidad_nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {t('ticket.optionalAssignment')}
+                </FormHelperText>
+              </FormControl>
             </Grid>
 
             {/* Fecha de Creación - No editable */}

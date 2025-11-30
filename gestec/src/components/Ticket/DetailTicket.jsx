@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import TicketService from '../../services/TicketService';
+import UpdateStatusDialog from './UpdateStatusDialog';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -9,6 +10,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EditIcon from '@mui/icons-material/Edit';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
@@ -18,9 +20,19 @@ import Rating from '@mui/material/Rating';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import Avatar from '@mui/material/Avatar';
+import PersonIcon from '@mui/icons-material/Person';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import ImageIcon from '@mui/icons-material/Image';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 export default function DetailTicket() {
   const { t } = useTranslation();
@@ -30,23 +42,42 @@ export default function DetailTicket() {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Obtener la ruta de origen, por defecto /tickets
   const fromPath = location.state?.from || '/tickets';
 
-  useEffect(() => {
-    let mounted = true;
+  const loadTicket = () => {
+    setLoading(true);
     TicketService.getDetalle(id)
       .then((res) => {
-        if (mounted) setTicket(res);
+        setTicket(res);
       })
       .catch((err) => {
         console.error('Error al cargar ticket:', err);
         setError(err);
       })
       .finally(() => setLoading(false));
-    return () => (mounted = false);
+  };
+
+  useEffect(() => {
+    loadTicket();
   }, [id]);
+
+  const handleUpdateStatus = async (formData) => {
+    try {
+      await TicketService.updateEstado(id, formData);
+      setSuccessMessage(t('ticket.updateSuccess') || 'Estado del ticket actualizado exitosamente');
+      // Recargar el ticket para ver los cambios
+      loadTicket();
+    } catch (err) {
+      console.error('Error al actualizar estado:', err);
+      throw err;
+    }
+  };
 
   // Formatear tiempo 
   const formatearTiempo = (horas) => {
@@ -94,15 +125,49 @@ export default function DetailTicket() {
     }
   };
 
+  const handleOpenImageDialog = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setImageDialogOpen(true);
+  };
+
+  const handleCloseImageDialog = () => {
+    setImageDialogOpen(false);
+    setSelectedImage(null);
+  };
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    // Si ya tiene el prefijo completo, devolverlo tal cual
+    if (imagePath.startsWith('http')) return imagePath;
+    // Si comienza con /uploads, construir la URL completa con puerto 81
+    if (imagePath.startsWith('/uploads')) {
+      return `http://localhost:81/GESTEC${imagePath}`;
+    }
+    // Si no tiene el prefijo, agregarlo
+    return `http://localhost:81/GESTEC/${imagePath}`;
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 3, mb: 4 }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => navigate(fromPath)}
-        sx={{ mb: 2 }}
-      >
-        {t('ticket.backToList')}
-      </Button>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(fromPath)}
+        >
+          {t('ticket.backToList')}
+        </Button>
+        
+        {ticket && ticket.estado?.toLowerCase() !== 'cerrado' && (
+          <Button
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={() => setOpenUpdateDialog(true)}
+            color="primary"
+          >
+            {t('ticket.updateStatus')}
+          </Button>
+        )}
+      </Box>
 
       {loading ? (
         <Paper sx={{ p: 3 }}>
@@ -284,39 +349,119 @@ export default function DetailTicket() {
               <Grid item xs={12}>
                 <Card elevation={2}>
                   <CardContent>
-                    <Typography variant="h6" gutterBottom color="primary">
+                    <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AccessTimeIcon />
                       {t('ticket.stateHistory')}
                     </Typography>
-                    <List>
+                    <Box sx={{ mt: 2 }}>
                       {ticket.historial.map((cambio, idx) => (
-                        <div key={cambio.id}>
-                          <ListItem>
-                            <ListItemText
-                              primary={
-                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                  <Chip label={getEstadoLabel(cambio.estado_anterior)} size="small" variant="outlined" />
-                                  <Typography>→</Typography>
-                                  <Chip label={getEstadoLabel(cambio.estado_nuevo)} size="small" color="primary" />
-                                </Box>
-                              }
-                              secondary={
-                                <>
-                                  <Typography variant="caption" display="block" color="text.secondary">
-                                    {new Date(cambio.fecha).toLocaleString()}
+                        <Card 
+                          key={cambio.id} 
+                          variant="outlined" 
+                          sx={{ 
+                            mb: 2, 
+                            borderLeft: 4, 
+                            borderLeftColor: 'primary.main',
+                            '&:last-child': { mb: 0 }
+                          }}
+                        >
+                          <CardContent>
+                            {/* Estado Transition */}
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2 }}>
+                              <Chip 
+                                label={getEstadoLabel(cambio.estado_anterior)} 
+                                size="small" 
+                                color={getEstadoColor(cambio.estado_anterior)}
+                                variant="outlined" 
+                              />
+                              <Typography variant="body2" color="text.secondary">→</Typography>
+                              <Chip 
+                                label={getEstadoLabel(cambio.estado_nuevo)} 
+                                size="small" 
+                                color={getEstadoColor(cambio.estado_nuevo)}
+                              />
+                            </Box>
+
+                            {/* User and Date Info */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                                  <PersonIcon fontSize="small" />
+                                </Avatar>
+                                <Box>
+                                  <Typography variant="body2" fontWeight="medium">
+                                    {cambio.usuario_nombre || t('ticket.unknownUser')}
                                   </Typography>
-                                  {cambio.observacion && (
-                                    <Typography variant="body2" color="text.secondary">
-                                      {cambio.observacion}
+                                  {cambio.usuario_email && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      {cambio.usuario_email}
                                     </Typography>
                                   )}
-                                </>
-                              }
-                            />
-                          </ListItem>
-                          {idx < ticket.historial.length - 1 && <Divider />}
-                        </div>
+                                </Box>
+                              </Box>
+                              <Box sx={{ ml: 'auto' }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {new Date(cambio.fecha).toLocaleString('es-ES', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </Typography>
+                              </Box>
+                            </Box>
+
+                            {/* Comment/Observation */}
+                            {cambio.observacion && (
+                              <Box sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                                <Typography variant="body2" fontWeight="medium" gutterBottom>
+                                  {t('ticket.comment')}:
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {cambio.observacion}
+                                </Typography>
+                              </Box>
+                            )}
+
+                            {/* Image Evidence */}
+                            {cambio.imagen_evidencia && (
+                              <Box sx={{ mt: 2 }}>
+                                {console.log('Rendering image for cambio:', cambio.id, 'Path:', cambio.imagen_evidencia, 'URL:', getImageUrl(cambio.imagen_evidencia))}
+                                <Typography variant="body2" fontWeight="medium" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <ImageIcon fontSize="small" color="primary" />
+                                  {t('ticket.evidenceImage')}:
+                                </Typography>
+                                <Box 
+                                  component="img"
+                                  src={getImageUrl(cambio.imagen_evidencia)}
+                                  alt={t('ticket.evidenceImage')}
+                                  onError={(e) => {
+                                    console.error('Error loading image:', cambio.imagen_evidencia);
+                                    console.error('Full URL:', getImageUrl(cambio.imagen_evidencia));
+                                    console.error('Error event:', e);
+                                  }}
+                                  sx={{ 
+                                    maxWidth: 200, 
+                                    maxHeight: 150, 
+                                    objectFit: 'cover',
+                                    borderRadius: 1,
+                                    cursor: 'pointer',
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    '&:hover': {
+                                      opacity: 0.8,
+                                      boxShadow: 2
+                                    }
+                                  }}
+                                  onClick={() => handleOpenImageDialog(getImageUrl(cambio.imagen_evidencia))}
+                                />
+                              </Box>
+                            )}
+                          </CardContent>
+                        </Card>
                       ))}
-                    </List>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
@@ -386,6 +531,56 @@ export default function DetailTicket() {
           </Grid>
         </>
       )}
+
+      {/* Diálogo de actualización de estado */}
+      <UpdateStatusDialog
+        open={openUpdateDialog}
+        onClose={() => setOpenUpdateDialog(false)}
+        ticket={ticket}
+        onUpdate={handleUpdateStatus}
+      />
+
+      {/* Snackbar de éxito */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={() => setSuccessMessage('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccessMessage('')}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Image Viewer Dialog */}
+      <Dialog
+        open={imageDialogOpen}
+        onClose={handleCloseImageDialog}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {t('ticket.evidenceImage')}
+          <IconButton onClick={handleCloseImageDialog} edge="end">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {selectedImage && (
+            <Box
+              component="img"
+              src={selectedImage}
+              alt={t('ticket.evidenceImage')}
+              sx={{
+                width: '100%',
+                height: 'auto',
+                objectFit: 'contain',
+                maxHeight: '80vh'
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 }

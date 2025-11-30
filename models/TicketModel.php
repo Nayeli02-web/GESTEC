@@ -180,10 +180,42 @@ class TicketModel
 
             // Obtener historial de estados (si existe la tabla)
             try {
-                $historialSql = "SELECT h.estado_nuevo AS estado, h.fecha, h.observacion AS observaciones
-                                FROM historial_tickets h
-                                WHERE h.ticket_id = $id
-                                ORDER BY h.fecha ASC";
+                // Verificar si las columnas usuario_id e imagen_evidencia existen
+                $checkColumnsSql = "SHOW COLUMNS FROM historial_tickets LIKE 'usuario_id'";
+                $columnsExist = $this->enlace->ExecuteSQL($checkColumnsSql, 'asoc');
+                
+                if (!empty($columnsExist)) {
+                    // Versión con columnas nuevas (después de migración)
+                    $historialSql = "SELECT 
+                                        h.id,
+                                        h.estado_anterior,
+                                        h.estado_nuevo AS estado, 
+                                        h.fecha, 
+                                        h.observacion,
+                                        h.imagen_evidencia,
+                                        u.id AS usuario_id,
+                                        u.nombre AS usuario_nombre,
+                                        u.correo AS usuario_email
+                                    FROM historial_tickets h
+                                    LEFT JOIN usuarios u ON h.usuario_id = u.id
+                                    WHERE h.ticket_id = $id
+                                    ORDER BY h.fecha ASC";
+                } else {
+                    // Versión sin columnas nuevas (antes de migración)
+                    $historialSql = "SELECT 
+                                        h.id,
+                                        h.estado_anterior,
+                                        h.estado_nuevo AS estado, 
+                                        h.fecha, 
+                                        h.observacion,
+                                        NULL AS imagen_evidencia,
+                                        NULL AS usuario_id,
+                                        NULL AS usuario_nombre,
+                                        NULL AS usuario_email
+                                    FROM historial_tickets h
+                                    WHERE h.ticket_id = $id
+                                    ORDER BY h.fecha ASC";
+                }
                 $ticket['historial'] = $this->enlace->ExecuteSQL($historialSql, 'asoc');
                 
                 // Calcular cumplimiento basándose en el historial
@@ -408,6 +440,7 @@ class TicketModel
             $prioridad = addslashes($datos->prioridad ?? 'media');
             $cliente_id = (int)($datos->cliente_id ?? 0);
             $etiqueta_id = (int)($datos->etiqueta_id ?? 0);
+            $tecnico_id = isset($datos->tecnico_id) && $datos->tecnico_id ? (int)$datos->tecnico_id : null;
 
             // Validaciones
             if (empty($titulo) || empty($cliente_id) || empty($etiqueta_id)) {
@@ -443,6 +476,7 @@ class TicketModel
                         prioridad, 
                         estado, 
                         cliente_id, 
+                        tecnico_id,
                         categoria_id, 
                         sla_id,
                         fecha_creacion
@@ -452,6 +486,7 @@ class TicketModel
                         '$prioridad',
                         'pendiente',
                         $cliente_id,
+                        " . ($tecnico_id ? $tecnico_id : "NULL") . ",
                         $categoria_id,
                         " . ($sla_id ? $sla_id : "NULL") . ",
                         NOW()
@@ -469,5 +504,117 @@ class TicketModel
             return null;
         }
     }
-}
 
+    /**
+     * Actualizar el estado de un ticket
+     * @param int $id - ID del ticket
+     * @param object $datos - Objeto con nuevoEstado y comentario
+     * @return array|null - Ticket actualizado o null si hay error
+     */
+    public function updateEstado($id, $datos)
+    {
+        try {
+            $nuevoEstado = strtolower(trim($datos->nuevoEstado ?? ''));
+            $comentario = addslashes(trim($datos->comentario ?? ''));
+            $usuario_id = (int)($datos->usuario_id ?? 0);
+            $imagen_evidencia = $datos->imagen_evidencia ?? null;
+
+            // Verificar si las columnas usuario_id e imagen_evidencia existen
+            $checkColumnsSql = "SHOW COLUMNS FROM historial_tickets LIKE 'usuario_id'";
+            $columnsExist = $this->enlace->ExecuteSQL($checkColumnsSql, 'asoc');
+            $hasMigration = !empty($columnsExist);
+
+            // Validaciones
+            if (empty($nuevoEstado) || empty($comentario)) {
+                throw new Exception('Estado y comentario son obligatorios');
+            }
+
+            // Validar usuario (solo si la migración está aplicada)
+            if ($hasMigration && empty($usuario_id)) {
+                throw new Exception('El usuario es obligatorio para registrar el cambio');
+            }
+
+            // Validar imagen de evidencia (solo si la migración está aplicada)
+            if ($hasMigration && empty($imagen_evidencia)) {
+                throw new Exception('La imagen de evidencia es obligatoria para registrar el cambio');
+            }
+
+            // Validar que el comentario tenga al menos 10 caracteres
+            if (strlen($comentario) < 10) {
+                throw new Exception('El comentario debe tener al menos 10 caracteres');
+            }
+
+            // Estados válidos
+            $estadosValidos = ['pendiente', 'asignado', 'en_proceso', 'resuelto', 'cerrado'];
+            if (!in_array($nuevoEstado, $estadosValidos)) {
+                throw new Exception('Estado no válido');
+            }
+
+            // Obtener el ticket actual
+            $ticketActual = $this->get($id);
+            if (!$ticketActual) {
+                throw new Exception('Ticket no encontrado');
+            }
+
+            $estadoActual = strtolower(trim($ticketActual['estado']));
+
+            // Validar que el ticket no esté cerrado
+            if ($estadoActual === 'cerrado') {
+                throw new Exception('No se puede cambiar el estado de un ticket cerrado');
+            }
+
+            // Validar flujo estricto de estados
+            $flujoEstados = [
+                'pendiente' => 'asignado',
+                'asignado' => 'en_proceso',
+                'en_proceso' => 'resuelto',
+                'resuelto' => 'cerrado'
+            ];
+
+            $estadoEsperado = $flujoEstados[$estadoActual] ?? null;
+            if ($nuevoEstado !== $estadoEsperado) {
+                throw new Exception('No se puede cambiar al estado ' . $nuevoEstado . ' desde ' . $estadoActual);
+            }
+
+            // Validar que tenga técnico asignado (excepto si está en pendiente)
+            if ($estadoActual !== 'pendiente' && empty($ticketActual['tecnico_id'])) {
+                throw new Exception('El ticket debe tener un técnico asignado para avanzar');
+            }
+
+            // Actualizar el estado del ticket
+            $updateSql = "UPDATE tickets 
+                         SET estado = '$nuevoEstado'";
+            
+            // Si pasa a cerrado, registrar fecha de cierre
+            if ($nuevoEstado === 'cerrado') {
+                $updateSql .= ", fecha_cierre = NOW()";
+            }
+            
+            $updateSql .= " WHERE id = $id";
+            $this->enlace->executeSQL_DML($updateSql);
+
+            // Insertar en el historial según si existe la migración o no
+            if ($hasMigration) {
+                // Con nuevas columnas
+                $imagen_sql = $imagen_evidencia ? "'" . addslashes($imagen_evidencia) . "'" : "NULL";
+                $historialSql = "INSERT INTO historial_tickets 
+                                (ticket_id, estado_anterior, estado_nuevo, observacion, usuario_id, imagen_evidencia, fecha)
+                                VALUES 
+                                ($id, '$estadoActual', '$nuevoEstado', '$comentario', $usuario_id, $imagen_sql, NOW())";
+            } else {
+                // Sin nuevas columnas
+                $historialSql = "INSERT INTO historial_tickets 
+                                (ticket_id, estado_anterior, estado_nuevo, observacion, fecha)
+                                VALUES 
+                                ($id, '$estadoActual', '$nuevoEstado', '$comentario', NOW())";
+            }
+            $this->enlace->executeSQL_DML($historialSql);
+
+            // Retornar el ticket actualizado
+            return $this->getDetalle($id);
+
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+}

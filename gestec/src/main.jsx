@@ -18,6 +18,9 @@ import ListTickets from "./components/Ticket/ListTickets";
 import CreateTicket from "./components/Ticket/CreateTicket";
 import DetailTicket from "./components/Ticket/DetailTicket";
 import AsignacionesTecnico from "./components/Asignaciones/AsignacionesTecnico";
+import AutoTriage from "./components/AutoTriage/AutoTriage";
+import AsignacionManual from "./components/AutoTriage/AsignacionManual";
+import Notificaciones from "./components/Notificaciones/Notificaciones";
 
 const rutas=createBrowserRouter(
   [
@@ -75,6 +78,18 @@ const rutas=createBrowserRouter(
         {
           path: '/asignaciones',
           element: <AsignacionesTecnico />
+        },
+        {
+          path: '/autotriage',
+          element: <AutoTriage />
+        },
+        {
+          path: '/asignacion-manual',
+          element: <AsignacionManual />
+        },
+        {
+          path: '/notificaciones',
+          element: <Notificaciones />
         }
       ]
     }

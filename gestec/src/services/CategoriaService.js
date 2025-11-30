@@ -1,40 +1,26 @@
-const BASE = import.meta.env.VITE_BASE_URL || 'http://localhost:81/GESTEC/';
-const BASE_URL = BASE + 'categoria';
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:81/GESTEC/';
 
-async function fetchWithFallback(path, options) {
-  
-  try {
-    const res = await fetch(path, options);
-    if (!res.ok) throw res;
-    return res;
-  } catch {
-    // Remove leading slash and extract the path after BASE_URL
-    let cleanPath = path.replace(/^\//, '');
-    
-    // If path starts with BASE_URL (categoria), use it directly
-    // Otherwise, assume it's already the full path we want
-    const fallback = 'http://localhost:81/GESTEC/' + cleanPath;
-    const res2 = await fetch(fallback, options);
-    if (!res2.ok) throw res2;
-    return res2;
-  }
+async function fetchWithFallback(url, options) {
+  const res = await fetch(url, options);
+  if (!res.ok) throw res;
+  return res;
 }
 
 export default {
   async getById(id) {
-    const res = await fetchWithFallback(BASE_URL + '/' + id);
+    const res = await fetchWithFallback(`${BASE_URL}categoria/${id}`);
     return res.json();
   },
   async getDetalle(id) {
-    const res = await fetchWithFallback(BASE_URL + '/detalle/' + id);
+    const res = await fetchWithFallback(`${BASE_URL}categoria/detalle/${id}`);
     return res.json();
   },
   async getAll() {
-    const res = await fetchWithFallback(BASE_URL);
+    const res = await fetchWithFallback(`${BASE_URL}categoria`);
     return res.json();
   },
   async create(categoria) {
-    const res = await fetchWithFallback(BASE_URL, {
+    const res = await fetchWithFallback(`${BASE_URL}categoria`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categoria),
@@ -42,7 +28,7 @@ export default {
     return res.json();
   },
   async update(categoria) {
-    const res = await fetchWithFallback(BASE_URL + '/' + (categoria.id || ''), {
+    const res = await fetchWithFallback(`${BASE_URL}categoria/${categoria.id || ''}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categoria),

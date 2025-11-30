@@ -11,8 +11,13 @@ class RoutesController
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
 
         // Serve uploaded files directly
-        if (strpos($uri, '/uploads/') === 0) {
-            $filePath = $_SERVER['DOCUMENT_ROOT'] . $uri;
+        // Manejar tanto /uploads/ como /GESTEC/uploads/
+        if (strpos($uri, '/uploads/') !== false) {
+            // Extraer la parte después de /uploads/
+            $uploadsPos = strpos($uri, '/uploads/');
+            $relativePath = substr($uri, $uploadsPos);
+            $filePath = __DIR__ . '/..' . $relativePath;
+            
             if (file_exists($filePath)) {
                 header('Content-Type: ' . mime_content_type($filePath));
                 readfile($filePath);
@@ -20,7 +25,7 @@ class RoutesController
             }
             http_response_code(404);
             header('Content-Type: text/plain');
-            echo 'Archivo no encontrado.';
+            echo 'Archivo no encontrado: ' . $filePath;
             exit;
         }
 
@@ -98,7 +103,19 @@ class RoutesController
                     break;
 
                 case 'POST':
-                    if ($action && method_exists($controller, $action)) {
+                    // Check if this is a custom action route like /ticket/estado/123
+                    if ($action && !is_numeric($action) && $param1 && is_numeric($param1)) {
+                        // Call the action method with the numeric parameter
+                        // Example: POST /ticket/estado/123 -> $controller->estado(123)
+                        $methodName = $action;
+                        if (method_exists($controller, $methodName)) {
+                            $controller->$methodName($param1);
+                        } else {
+                            header('Content-Type: application/json');
+                            http_response_code(404);
+                            echo json_encode(['status' => 404, 'result' => 'Acción no encontrada']);
+                        }
+                    } elseif ($action && method_exists($controller, $action)) {
                         $controller->$action();
                     } else {
                         $controller->create();
@@ -107,7 +124,19 @@ class RoutesController
 
                 case 'PUT':
                 case 'PATCH':
-                    if ($param1 && is_numeric($param1)) {
+                    // Check if this is a custom action route like /ticket/estado/123
+                    if ($action && !is_numeric($action) && $param1 && is_numeric($param1)) {
+                        // Call the action method with the numeric parameter
+                        // Example: /ticket/estado/123 -> $controller->estado(123)
+                        $methodName = $action;
+                        if (method_exists($controller, $methodName)) {
+                            $controller->$methodName($param1);
+                        } else {
+                            header('Content-Type: application/json');
+                            http_response_code(404);
+                            echo json_encode(['status' => 404, 'result' => 'Acción no encontrada']);
+                        }
+                    } elseif ($param1 && is_numeric($param1)) {
                         $controller->update($param1);
                     } else {
                         $controller->update();

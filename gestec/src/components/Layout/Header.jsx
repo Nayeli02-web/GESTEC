@@ -16,6 +16,7 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import LiveTvIcon from "@mui/icons-material/LiveTv";
 import Tooltip from "@mui/material/Tooltip";
 import LanguageSwitcher from "../LanguageSwitcher";
+import NotificacionesMenu from "../Notificaciones/NotificacionesMenu";
 import { useTranslation } from "react-i18next";
 
 export default function Header() {
@@ -63,7 +64,9 @@ export default function Header() {
   const navItems = [
     { name: t('navigation.technicians'), link: '/tecnicos' },
     { name: t('navigation.categories'), link: '/categorias' },
-    { name: t('navigation.tickets'), link: '/tickets' }
+    { name: t('navigation.tickets'), link: '/tickets' },
+    { name: 'AutoTriage', link: '/autotriage' },
+    { name: 'Asignación Manual', link: '/asignacion-manual' }
   ];
   //Identificador menu principal
   const menuIdPrincipal = "menu-appbar";
@@ -248,11 +251,7 @@ export default function Header() {
                 <ShoppingCartIcon />
               </Badge>
             </IconButton>
-            <IconButton size="large" color="inherit">
-              <Badge badgeContent={17} color="primary">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+            <NotificacionesMenu />
             <LanguageSwitcher />
           </Box>
           <LanguageSwitcher />
