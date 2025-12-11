@@ -3,6 +3,8 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import TicketService from '../../services/TicketService';
 import UpdateStatusDialog from './UpdateStatusDialog';
+import ValoracionDialog from '../Valoracion/ValoracionDialog';
+import { useAuth } from '../Auth/AuthContext';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -39,10 +41,12 @@ export default function DetailTicket() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
+  const [openValoracionDialog, setOpenValoracionDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -77,6 +81,29 @@ export default function DetailTicket() {
       console.error('Error al actualizar estado:', err);
       throw err;
     }
+  };
+
+  const handleValoracionSuccess = (message) => {
+    setSuccessMessage(message);
+    setOpenValoracionDialog(false);
+    // Recargar el ticket para ver la valoración
+    loadTicket();
+  };
+
+  // Verificar si el usuario puede valorar el ticket
+  const puedeValorar = () => {
+    if (!ticket || !user) return false;
+    
+    // Solo puede valorar el creador del ticket
+    if (ticket.usuario_id !== user.id) return false;
+    
+    // Solo si el ticket está cerrado
+    if (ticket.estado !== 'cerrado') return false;
+    
+    // Solo si no ha sido valorado
+    if (ticket.valoracion) return false;
+    
+    return true;
   };
 
   // Formatear tiempo 
@@ -157,16 +184,28 @@ export default function DetailTicket() {
           {t('ticket.backToList')}
         </Button>
         
-        {ticket && ticket.estado?.toLowerCase() !== 'cerrado' && (
-          <Button
-            variant="contained"
-            startIcon={<EditIcon />}
-            onClick={() => setOpenUpdateDialog(true)}
-            color="primary"
-          >
-            {t('ticket.updateStatus')}
-          </Button>
-        )}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {ticket && ticket.estado?.toLowerCase() !== 'cerrado' && (
+            <Button
+              variant="contained"
+              startIcon={<EditIcon />}
+              onClick={() => setOpenUpdateDialog(true)}
+              color="primary"
+            >
+              {t('ticket.updateStatus')}
+            </Button>
+          )}
+
+          {puedeValorar() && (
+            <Button
+              variant="contained"
+              onClick={() => setOpenValoracionDialog(true)}
+              color="success"
+            >
+              Valorar Servicio
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {loading ? (
@@ -539,6 +578,16 @@ export default function DetailTicket() {
         ticket={ticket}
         onUpdate={handleUpdateStatus}
       />
+
+      {/* Diálogo de Valoración */}
+      {ticket && (
+        <ValoracionDialog
+          open={openValoracionDialog}
+          onClose={() => setOpenValoracionDialog(false)}
+          ticket={ticket}
+          onSuccess={handleValoracionSuccess}
+        />
+      )}
 
       {/* Snackbar de éxito */}
       <Snackbar

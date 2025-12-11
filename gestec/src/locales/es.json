@@ -248,9 +248,12 @@
   "assignment": {
     "title": "Asignaciones de Técnico",
     "myAssignments": "Mis Asignaciones",
+    "allAssignments": "Todas las Asignaciones",
     "viewDescription": "Vista de tickets asignados organizados por estado y semana",
     "filterByWeek": "Filtrar por semana",
+    "filterByTechnician": "Filtrar por técnico",
     "allWeeks": "Todas las semanas",
+    "allTechnicians": "Todos los técnicos",
     "currentWeek": "Semana actual",
     "remainingTime": "Tiempo restante SLA",
     "changeState": "Cambiar estado",
@@ -261,7 +264,12 @@
     "loadingError": "Error al cargar las asignaciones",
     "noTickets": "No hay tickets en esta categoría",
     "showing": "Mostrando",
-    "priorityLegend": "Leyenda de Prioridades"
+    "priorityLegend": "Leyenda de Prioridades",
+    "organizeBy": "Organizar por",
+    "byState": "Estado",
+    "byDay": "Día",
+    "byWeek": "Semana",
+    "byTechnician": "Técnico"
   },
   "home": {
     "title": "GESTEC",
@@ -396,5 +404,29 @@
     "ticketChangeMessage": "El ticket #{{id}} '{{title}}' cambió de '{{oldState}}' a '{{newState}}'. Responsable: {{responsible}}. {{comment}}",
     "viewTicket": "Ver ticket",
     "clickToView": "Haz clic para ver el ticket"
+  },
+  "login": {
+    "title": "Iniciar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "submit": "Iniciar Sesión",
+    "noAccount": "¿No tienes cuenta?",
+    "register": "Regístrate aquí"
+  },
+  "register": {
+    "title": "Registrarse",
+    "subtitle": "Crea tu cuenta como Cliente",
+    "name": "Nombre Completo",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "submit": "Registrarse",
+    "hasAccount": "¿Ya tienes cuenta?",
+    "login": "Inicia sesión aquí"
+  },
+  "logout": {
+    "title": "Cerrando Sesión",
+    "success": "Sesión cerrada exitosamente",
+    "error": "Error al cerrar sesión"
   }
 }

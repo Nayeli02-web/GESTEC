@@ -25,20 +25,18 @@ import TicketService from '../../services/TicketService';
 import EtiquetaService from '../../services/EtiquetaService';
 import TecnicoService from '../../services/TecnicoService';
 import { useTranslation } from 'react-i18next';
-
-// Variable de usuario simulado (mientras no hay autenticación)
-const USUARIO_ID = 1; // ID del usuario logueado
+import { useAuth } from '../Auth/AuthContext';
 
 function CreateTicket() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [etiquetas, setEtiquetas] = useState([]);
   const [tecnicos, setTecnicos] = useState([]);
-  const [usuarioInfo, setUsuarioInfo] = useState({ nombre: '', correo: '' });
   
   const [formData, setFormData] = useState({
     titulo: '',
@@ -57,6 +55,19 @@ function CreateTicket() {
   });
 
   useEffect(() => {
+    // Verificar que el usuario esté autenticado
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Solo los clientes pueden crear tickets
+    if (user.rol_id !== 2) {
+      setError('Solo los clientes pueden crear tickets');
+      setLoading(false);
+      return;
+    }
+
     const cargarDatos = async () => {
       try {
         setLoading(true);
@@ -71,13 +82,6 @@ function CreateTicket() {
         setEtiquetas(etiquetasData);
         setTecnicos(tecnicosData);
 
-        // Simular información del usuario (normalmente vendría del sistema de autenticación)
-        // Usuario ID 1: María López (Cliente)
-        setUsuarioInfo({
-          nombre: 'María López',
-          correo: 'maria@correo.com'
-        });
-
       } catch (err) {
         console.error('Error al cargar datos:', err);
         setError('Error al cargar los datos necesarios');
@@ -87,7 +91,7 @@ function CreateTicket() {
     };
 
     cargarDatos();
-  }, []);
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -159,7 +163,7 @@ function CreateTicket() {
         descripcion: formData.descripcion.trim(),
         prioridad: formData.prioridad,
         etiqueta_id: parseInt(formData.etiqueta_id),
-        cliente_id: USUARIO_ID, // Usuario simulado
+        cliente_id: user.usuario_id || user.id,
         tecnico_id: formData.tecnico_id ? parseInt(formData.tecnico_id) : null,
       };
 
@@ -242,7 +246,7 @@ function CreateTicket() {
               <TextField
                 fullWidth
                 label={t('ticket.requestingUser')}
-                value={usuarioInfo.nombre}
+                value={user?.nombre || ''}
                 disabled
                 helperText={t('ticket.currentUser')}
               />
@@ -253,7 +257,7 @@ function CreateTicket() {
               <TextField
                 fullWidth
                 label={t('ticket.email')}
-                value={usuarioInfo.correo}
+                value={user?.correo || ''}
                 disabled
                 helperText={t('ticket.requestingUserEmail')}
               />

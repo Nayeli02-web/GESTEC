@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
 import InfoIcon from '@mui/icons-material/Info';
+import { useAuth } from '../Auth/AuthContext';
 
 // Flujo estricto de estados
 const ESTADO_FLUJO = {
@@ -36,6 +37,7 @@ const ESTADOS_ORDEN = ['pendiente', 'asignado', 'en_proceso', 'resuelto', 'cerra
 
 export default function UpdateStatusDialog({ open, onClose, ticket, onUpdate }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [comentario, setComentario] = useState('');
   const [nuevoEstado, setNuevoEstado] = useState('');
   const [error, setError] = useState('');
@@ -162,11 +164,29 @@ export default function UpdateStatusDialog({ open, onClose, ticket, onUpdate }) 
     setLoading(true);
 
     try {
+      // Validar que haya un usuario autenticado
+      if (!user || !user.id) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      // Obtener rol del usuario
+      const getRolName = (rol_id) => {
+        switch (rol_id) {
+          case 1: return 'Administrador';
+          case 2: return 'Cliente';
+          case 3: return 'Tecnico';
+          default: return 'Cliente';
+        }
+      };
+
+      const rol_usuario = getRolName(user.rol_id);
+
       // Crear FormData para enviar la imagen
       const formData = new FormData();
       formData.append('nuevoEstado', nuevoEstado);
       formData.append('comentario', comentario.trim());
-      formData.append('usuario_id', 1); // TODO: Obtener del usuario logueado
+      formData.append('usuario_id', user.id);
+      formData.append('rol_usuario', rol_usuario);
       if (imagenFile) {
         formData.append('imagen', imagenFile);
       }

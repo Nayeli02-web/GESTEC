@@ -145,9 +145,11 @@ CREATE TABLE valoraciones (
   id INT AUTO_INCREMENT PRIMARY KEY,
   ticket_id INT NOT NULL UNIQUE,
   puntuacion TINYINT NOT NULL CHECK (puntuacion BETWEEN 1 AND 5),
-  comentario VARCHAR(255),
+  comentario TEXT,
   fecha DATETIME,
-  FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE
+  usuario_id INT NOT NULL,
+  FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 -- === IMÁGENES ===

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import TicketService from '../../services/TicketService';
 import UpdateStatusDialog from '../Ticket/UpdateStatusDialog';
+import { useAuth } from '../Auth/AuthContext';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -25,6 +26,11 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ViewWeekIcon from '@mui/icons-material/ViewWeek';
+import PersonIcon from '@mui/icons-material/Person';
 
 // Icons
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -39,30 +45,62 @@ import BuildIcon from '@mui/icons-material/Build';
 import CategoryIcon from '@mui/icons-material/Category';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WarningIcon from '@mui/icons-material/Warning';
+import TodayIcon from '@mui/icons-material/Today';
 
 export default function AsignacionesTecnico() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
+  const [tecnicos, setTecnicos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
+  const [vistaOrganizacion, setVistaOrganizacion] = useState('estado'); // 'estado', 'dia', 'semana', 'tecnico'
   const [semanaSeleccionada, setSemanaSeleccionada] = useState('todas');
+  const [tecnicoSeleccionado, setTecnicoSeleccionado] = useState('todos');
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-  
-  // TODO: En producción, obtener del contexto de autenticación
-  const usuarioId = 1;
-  const rolUsuario = 'Administrador'; // Cambiado temporalmente a Administrador para ver todos los tickets
+
+  // Mapear rol_id a nombre de rol
+  const getRoleName = (rol_id) => {
+    switch (rol_id) {
+      case 1: return 'Administrador';
+      case 2: return 'Cliente';
+      case 3: return 'Tecnico';
+      default: return 'Cliente';
+    }
+  };
 
   useEffect(() => {
-    cargarTickets();
-  }, []);
+    if (user) {
+      cargarTickets();
+      // Si es admin, cargar lista de técnicos
+      if (user.rol_id === 1) {
+        cargarTecnicos();
+      }
+    }
+  }, [user]);
+
+  const cargarTecnicos = async () => {
+    try {
+      const TecnicoService = (await import('../../services/TecnicoService')).default;
+      const data = await TecnicoService.getAll();
+      setTecnicos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error al cargar técnicos:', err);
+    }
+  };
 
   const cargarTickets = () => {
+    if (!user) return;
+    
     setLoading(true);
-    TicketService.getAll(usuarioId, rolUsuario)
+    const rol = getRoleName(user.rol_id);
+    const userId = user.usuario_id || user.id;
+    
+    TicketService.getAll(userId, rol)
       .then((res) => {
         setTickets(Array.isArray(res) ? res : []);
       })
@@ -146,14 +184,14 @@ export default function AsignacionesTecnico() {
     }
   };
 
-  // Calcular tiempo restante de SLA 
+  // Calcular tiempo restante de SLA desde los datos reales del ticket
   const calcularTiempoRestanteSLA = (ticket) => {
+    if (!ticket.sla_info) {
+      return { porcentaje: 0, color: 'default', texto: 'N/A' };
+    }
 
-    // calcular basándose en fecha_creacion y SLA
-    const random = Math.random();
-    if (random > 0.7) return { porcentaje: 85, color: 'error', texto: '15 min' };
-    if (random > 0.4) return { porcentaje: 50, color: 'warning', texto: '2 hrs' };
-    return { porcentaje: 20, color: 'success', texto: '6 hrs' };
+    const { porcentaje, color, texto } = ticket.sla_info;
+    return { porcentaje, color, texto };
   };
 
   // Generar opciones de semanas 
@@ -197,6 +235,58 @@ export default function AsignacionesTecnico() {
     });
   };
 
+  // Filtrar tickets por técnico (solo para admin)
+  const filtrarPorTecnico = (ticketsList) => {
+    if (tecnicoSeleccionado === 'todos') return ticketsList;
+    return ticketsList.filter(t => t.tecnico_id === parseInt(tecnicoSeleccionado));
+  };
+
+  // Agrupar tickets por día
+  const agruparPorDia = (ticketsList) => {
+    const grupos = {};
+    ticketsList.forEach(ticket => {
+      const fecha = new Date(ticket.fecha_creacion);
+      const key = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+      if (!grupos[key]) {
+        grupos[key] = [];
+      }
+      grupos[key].push(ticket);
+    });
+    return grupos;
+  };
+
+  // Agrupar tickets por semana
+  const agruparPorSemana = (ticketsList) => {
+    const grupos = {};
+    ticketsList.forEach(ticket => {
+      const fecha = new Date(ticket.fecha_creacion);
+      const inicioSemana = new Date(fecha);
+      inicioSemana.setDate(fecha.getDate() - (fecha.getDay() || 7) + 1);
+      const key = inicioSemana.toISOString().split('T')[0];
+      if (!grupos[key]) {
+        grupos[key] = [];
+      }
+      grupos[key].push(ticket);
+    });
+    return grupos;
+  };
+
+  // Agrupar tickets por técnico
+  const agruparPorTecnico = (ticketsList) => {
+    const grupos = {};
+    ticketsList.forEach(ticket => {
+      const key = ticket.tecnico_id || 'sin_asignar';
+      if (!grupos[key]) {
+        grupos[key] = {
+          nombre: ticket.tecnico_nombre || 'Sin asignar',
+          tickets: []
+        };
+      }
+      grupos[key].tickets.push(ticket);
+    });
+    return grupos;
+  };
+
   // Filtrar tickets por estado
   const ticketsPorEstado = {
     pendientes: tickets.filter(t => t.estado === 'pendiente' || t.estado === 'asignado'),
@@ -210,7 +300,22 @@ export default function AsignacionesTecnico() {
     ? ticketsPorEstado.enProceso 
     : ticketsPorEstado.resueltos;
 
-  const ticketsFiltrados = filtrarPorSemana(ticketsPorEstadoFiltrados);
+  // Aplicar filtros
+  let ticketsFiltrados = ticketsPorEstadoFiltrados;
+  ticketsFiltrados = filtrarPorSemana(ticketsFiltrados);
+  if (user?.rol_id === 1) { // Solo admin puede filtrar por técnico
+    ticketsFiltrados = filtrarPorTecnico(ticketsFiltrados);
+  }
+
+  // Organizar según vista seleccionada
+  let ticketsOrganizados = {};
+  if (vistaOrganizacion === 'dia') {
+    ticketsOrganizados = agruparPorDia(ticketsFiltrados);
+  } else if (vistaOrganizacion === 'semana') {
+    ticketsOrganizados = agruparPorSemana(ticketsFiltrados);
+  } else if (vistaOrganizacion === 'tecnico') {
+    ticketsOrganizados = agruparPorTecnico(ticketsFiltrados);
+  }
 
   const TicketCard = ({ ticket }) => {
     const sla = calcularTiempoRestanteSLA(ticket);
@@ -316,12 +421,12 @@ export default function AsignacionesTecnico() {
     <Container maxWidth="xl" sx={{ mt: 3, mb: 4 }}>
       {/* Header */}
       <Paper sx={{ p: 3, mb: 3 }} elevation={3}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <AssignmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />
             <Box>
               <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 0 }}>
-                {t('assignment.myAssignments')}
+                {user?.rol_id === 1 ? t('assignment.allAssignments') : t('assignment.myAssignments')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {t('assignment.viewDescription')}
@@ -347,22 +452,78 @@ export default function AsignacionesTecnico() {
             </Select>
           </FormControl>
         </Box>
+
+        {/* Controles adicionales */}
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Toggle de vista de organización */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('assignment.organizeBy')}:
+            </Typography>
+            <ToggleButtonGroup
+              value={vistaOrganizacion}
+              exclusive
+              onChange={(e, newValue) => newValue && setVistaOrganizacion(newValue)}
+              size="small"
+            >
+              <ToggleButton value="estado">
+                {t('assignment.byState')}
+              </ToggleButton>
+              <ToggleButton value="dia">
+                <TodayIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                {t('assignment.byDay')}
+              </ToggleButton>
+              <ToggleButton value="semana">
+                <ViewWeekIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                {t('assignment.byWeek')}
+              </ToggleButton>
+              {user?.rol_id === 1 && (
+                <ToggleButton value="tecnico">
+                  <PersonIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                  {t('assignment.byTechnician')}
+                </ToggleButton>
+              )}
+            </ToggleButtonGroup>
+          </Box>
+
+          {/* Filtro por técnico (solo para admin) */}
+          {user?.rol_id === 1 && vistaOrganizacion !== 'tecnico' && (
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel id="tecnico-select-label">{t('assignment.filterByTechnician')}</InputLabel>
+              <Select
+                labelId="tecnico-select-label"
+                value={tecnicoSeleccionado}
+                label={t('assignment.filterByTechnician')}
+                onChange={(e) => setTecnicoSeleccionado(e.target.value)}
+              >
+                <MenuItem value="todos">{t('assignment.allTechnicians')}</MenuItem>
+                {tecnicos.map((tec) => (
+                  <MenuItem key={tec.id} value={tec.id}>
+                    {tec.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </Box>
       </Paper>
 
-      {/* Tabs de filtrado */}
-      <Paper sx={{ mb: 3 }}>
-        <Tabs 
-          value={tabValue} 
-          onChange={handleTabChange} 
-          variant="fullWidth"
-          indicatorColor="primary"
-          textColor="primary"
-        >
-          <Tab label={t('assignment.pending').toUpperCase()} />
-          <Tab label={t('assignment.inProgress').toUpperCase()} />
-          <Tab label={t('assignment.resolved').toUpperCase()} />
-        </Tabs>
-      </Paper>
+      {/* Tabs de filtrado - solo visible en vista por estado */}
+      {vistaOrganizacion === 'estado' && (
+        <Paper sx={{ mb: 3 }}>
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            variant="fullWidth"
+            indicatorColor="primary"
+            textColor="primary"
+          >
+            <Tab label={t('assignment.pending').toUpperCase()} />
+            <Tab label={t('assignment.inProgress').toUpperCase()} />
+            <Tab label={t('assignment.resolved').toUpperCase()} />
+          </Tabs>
+        </Paper>
+      )}
 
       {/* Contenido */}
       {loading ? (
@@ -387,14 +548,93 @@ export default function AsignacionesTecnico() {
             </Typography>
           </Box>
 
-          {/* Grid de tarjetas */}
-          <Grid container spacing={3}>
-            {ticketsFiltrados.map((ticket) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={ticket.id}>
-                <TicketCard ticket={ticket} />
-              </Grid>
-            ))}
-          </Grid>
+          {/* Vista según organización seleccionada */}
+          {vistaOrganizacion === 'estado' ? (
+            // Vista por estado (grid simple)
+            <Grid container spacing={3}>
+              {ticketsFiltrados.map((ticket) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={ticket.id}>
+                  <TicketCard ticket={ticket} />
+                </Grid>
+              ))}
+            </Grid>
+          ) : vistaOrganizacion === 'dia' ? (
+            // Vista por día
+            <Box>
+              {Object.keys(ticketsOrganizados).sort().reverse().map((dia) => (
+                <Box key={dia} sx={{ mb: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <CalendarMonthIcon color="primary" />
+                    <Typography variant="h6">
+                      {new Date(dia).toLocaleDateString('es-ES', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
+                    </Typography>
+                    <Chip label={`${ticketsOrganizados[dia].length} ticket(s)`} size="small" />
+                  </Box>
+                  <Grid container spacing={3}>
+                    {ticketsOrganizados[dia].map((ticket) => (
+                      <Grid item xs={12} sm={6} md={4} lg={3} key={ticket.id}>
+                        <TicketCard ticket={ticket} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              ))}
+            </Box>
+          ) : vistaOrganizacion === 'semana' ? (
+            // Vista por semana
+            <Box>
+              {Object.keys(ticketsOrganizados).sort().reverse().map((semana) => {
+                const fechaInicio = new Date(semana);
+                const fechaFin = new Date(fechaInicio);
+                fechaFin.setDate(fechaFin.getDate() + 6);
+                return (
+                  <Box key={semana} sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <ViewWeekIcon color="primary" />
+                      <Typography variant="h6">
+                        Semana del {fechaInicio.toLocaleDateString('es-ES')} al {fechaFin.toLocaleDateString('es-ES')}
+                      </Typography>
+                      <Chip label={`${ticketsOrganizados[semana].length} ticket(s)`} size="small" />
+                    </Box>
+                    <Grid container spacing={3}>
+                      {ticketsOrganizados[semana].map((ticket) => (
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={ticket.id}>
+                          <TicketCard ticket={ticket} />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                );
+              })}
+            </Box>
+          ) : (
+            // Vista por técnico
+            <Box>
+              {Object.entries(ticketsOrganizados).map(([tecnicoId, data]) => (
+                <Box key={tecnicoId} sx={{ mb: 4 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <PersonIcon color="primary" />
+                    <Typography variant="h6">
+                      {data.nombre}
+                    </Typography>
+                    <Chip label={`${data.tickets.length} ticket(s)`} size="small" />
+                  </Box>
+                  <Grid container spacing={3}>
+                    {data.tickets.map((ticket) => (
+                      <Grid item xs={12} sm={6} md={4} lg={3} key={ticket.id}>
+                        <TicketCard ticket={ticket} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              ))}
+            </Box>
+          )}
         </>
       )}
 

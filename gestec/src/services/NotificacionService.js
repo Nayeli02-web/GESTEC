@@ -4,11 +4,28 @@ const BASE_URL = "http://localhost:81/GESTEC/";
 
 const NotificacionService = {
   /**
+   * Obtener todas las notificaciones del usuario (alias para compatibilidad)
+   */
+  getNotificaciones: async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}notificacion`, {
+        withCredentials: true
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error al obtener notificaciones:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Obtener todas las notificaciones del usuario
    */
   obtenerNotificaciones: async () => {
     try {
-      const response = await axios.get(`${BASE_URL}notificacion`);
+      const response = await axios.get(`${BASE_URL}notificacion`, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al obtener notificaciones:", error);
@@ -21,7 +38,9 @@ const NotificacionService = {
    */
   obtenerNoLeidas: async () => {
     try {
-      const response = await axios.get(`${BASE_URL}notificacion/noleidas`);
+      const response = await axios.get(`${BASE_URL}notificacion/noleidas`, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al obtener notificaciones no leídas:", error);
@@ -34,7 +53,9 @@ const NotificacionService = {
    */
   contarNoLeidas: async () => {
     try {
-      const response = await axios.get(`${BASE_URL}notificacion/contar`);
+      const response = await axios.get(`${BASE_URL}notificacion/contar`, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al contar notificaciones:", error);
@@ -47,7 +68,9 @@ const NotificacionService = {
    */
   marcarComoLeida: async (notificacionId) => {
     try {
-      const response = await axios.put(`${BASE_URL}notificacion/leer/${notificacionId}`);
+      const response = await axios.put(`${BASE_URL}notificacion/leer/${notificacionId}`, {}, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al marcar notificación:", error);
@@ -60,7 +83,9 @@ const NotificacionService = {
    */
   marcarTodasLeidas: async () => {
     try {
-      const response = await axios.put(`${BASE_URL}notificacion/leertodas`);
+      const response = await axios.put(`${BASE_URL}notificacion/leertodas`, {}, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al marcar todas:", error);
@@ -73,7 +98,9 @@ const NotificacionService = {
    */
   eliminar: async (notificacionId) => {
     try {
-      const response = await axios.delete(`${BASE_URL}notificacion/${notificacionId}`);
+      const response = await axios.delete(`${BASE_URL}notificacion/${notificacionId}`, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al eliminar notificación:", error);
@@ -88,6 +115,8 @@ const NotificacionService = {
     try {
       const response = await axios.post(`${BASE_URL}notificacion/sesion`, {
         usuario_id: usuarioId,
+      }, {
+        withCredentials: true
       });
       return response.data;
     } catch (error) {
@@ -101,7 +130,9 @@ const NotificacionService = {
    */
   obtenerHistorialSesiones: async () => {
     try {
-      const response = await axios.get(`${BASE_URL}notificacion/historial-sesiones`);
+      const response = await axios.get(`${BASE_URL}notificacion/historial-sesiones`, {
+        withCredentials: true
+      });
       return response.data;
     } catch (error) {
       console.error("Error al obtener historial:", error);

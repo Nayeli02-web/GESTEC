@@ -56,9 +56,9 @@ export default function Header() {
   };
   //Lista enlaces menu usuario
   const userItems = [
-    { name: "Login", link: "/user/login", login: false },
-    { name: "Registrarse", link: "/user/create", login: false },
-    { name: "Logout", link: "/user/logout", login: true },
+    { name: "Login", link: "/login", login: false },
+    { name: "Registrarse", link: "/register", login: false },
+    { name: "Logout", link: "/logout", login: true },
   ];
   //Lista enlaces menu principal 
   const navItems = [

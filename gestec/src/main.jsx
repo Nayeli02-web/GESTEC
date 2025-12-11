@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import "./i18n"; 
 import App from "./App.jsx";
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Home } from "./components/Home/Home";
 import { RouterProvider } from "react-router";
 import ListTecnicos from "./components/Home/ListTecnicos";
@@ -18,9 +18,17 @@ import ListTickets from "./components/Ticket/ListTickets";
 import CreateTicket from "./components/Ticket/CreateTicket";
 import DetailTicket from "./components/Ticket/DetailTicket";
 import AsignacionesTecnico from "./components/Asignaciones/AsignacionesTecnico";
-import AutoTriage from "./components/AutoTriage/AutoTriage";
-import AsignacionManual from "./components/AutoTriage/AsignacionManual";
 import Notificaciones from "./components/Notificaciones/Notificaciones";
+import Login from "./components/Auth/Login";
+import Register from "./components/Auth/Register";
+import Logout from "./components/Auth/Logout";
+import { AuthProvider } from "./components/Auth/AuthContext";
+import { ProtectedRoute } from "./components/Auth/ProtectedRoute";
+import ListUsuarios from "./components/Usuario/ListUsuarios";
+import CreateUsuario from "./components/Usuario/CreateUsuario";
+import EditUsuario from "./components/Usuario/EditUsuario";
+import ChangePassword from "./components/Usuario/ChangePassword";
+import Dashboard from "./components/Home/Dashboard";
 
 const rutas=createBrowserRouter(
   [
@@ -29,67 +37,91 @@ const rutas=createBrowserRouter(
       children:[
         {
           path:'/',
-          element: <Home />
+          element: <ProtectedRoute><Home /></ProtectedRoute>
         },
         {
           path: '/tecnicos',
-          element: <ListTecnicos />
+          element: <ProtectedRoute><ListTecnicos /></ProtectedRoute>
         },
         {
           path: '/tecnico/crear',
-          element: <CreateTecnico />
+          element: <ProtectedRoute><CreateTecnico /></ProtectedRoute>
         },
         {
           path: '/tecnico/:id/editar',
-          element: <EditTecnico />
+          element: <ProtectedRoute><EditTecnico /></ProtectedRoute>
         },
         {
           path: '/tecnico/:id',
-          element: <DetailTecnico />
+          element: <ProtectedRoute><DetailTecnico /></ProtectedRoute>
         },
         {
           path: '/categorias',
-          element: <ListCategorias />
+          element: <ProtectedRoute><ListCategorias /></ProtectedRoute>
         },
         {
           path: '/categoria/crear',
-          element: <CreateCategoria />
+          element: <ProtectedRoute><CreateCategoria /></ProtectedRoute>
         },
         {
           path: '/categoria/:id/editar',
-          element: <EditCategoria />
+          element: <ProtectedRoute><EditCategoria /></ProtectedRoute>
         },
         {
           path: '/categoria/:id',
-          element: <DetailCategoria />
+          element: <ProtectedRoute><DetailCategoria /></ProtectedRoute>
         },
         {
           path: '/tickets',
-          element: <ListTickets />
+          element: <ProtectedRoute><ListTickets /></ProtectedRoute>
         },
         {
           path: '/ticket/crear',
-          element: <CreateTicket />
+          element: <ProtectedRoute><CreateTicket /></ProtectedRoute>
         },
         {
           path: '/ticket/:id',
-          element: <DetailTicket />
+          element: <ProtectedRoute><DetailTicket /></ProtectedRoute>
         },
         {
           path: '/asignaciones',
-          element: <AsignacionesTecnico />
-        },
-        {
-          path: '/autotriage',
-          element: <AutoTriage />
-        },
-        {
-          path: '/asignacion-manual',
-          element: <AsignacionManual />
+          element: <ProtectedRoute><AsignacionesTecnico /></ProtectedRoute>
         },
         {
           path: '/notificaciones',
-          element: <Notificaciones />
+          element: <ProtectedRoute><Notificaciones /></ProtectedRoute>
+        },
+        {
+          path: '/dashboard',
+          element: <ProtectedRoute><Dashboard /></ProtectedRoute>
+        },
+        {
+          path: '/usuarios',
+          element: <ProtectedRoute><ListUsuarios /></ProtectedRoute>
+        },
+        {
+          path: '/usuarios/crear',
+          element: <ProtectedRoute><CreateUsuario /></ProtectedRoute>
+        },
+        {
+          path: '/usuarios/editar/:id',
+          element: <ProtectedRoute><EditUsuario /></ProtectedRoute>
+        },
+        {
+          path: '/usuarios/cambiar-password/:id',
+          element: <ProtectedRoute><ChangePassword /></ProtectedRoute>
+        },
+        {
+          path: '/login',
+          element: <Login />
+        },
+        {
+          path: '/register',
+          element: <Register />
+        },
+        {
+          path: '/logout',
+          element: <ProtectedRoute><Logout /></ProtectedRoute>
         }
       ]
     }
@@ -98,6 +130,8 @@ const rutas=createBrowserRouter(
 
 createRoot(document.getElementById("root")).render(
   <StrictMode> 
-  <RouterProvider router={rutas} /> 
-</StrictMode>, 
+    <AuthProvider>
+      <RouterProvider router={rutas} /> 
+    </AuthProvider>
+  </StrictMode>, 
 );

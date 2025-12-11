@@ -396,5 +396,29 @@
     "ticketChangeMessage": "Ticket #{{id}} '{{title}}' changed from '{{oldState}}' to '{{newState}}'. Responsible: {{responsible}}. {{comment}}",
     "viewTicket": "View ticket",
     "clickToView": "Click to view ticket"
+  },
+  "login": {
+    "title": "Login",
+    "email": "Email Address",
+    "password": "Password",
+    "submit": "Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register here"
+  },
+  "register": {
+    "title": "Register",
+    "subtitle": "Create your account as Client",
+    "name": "Full Name",
+    "email": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "submit": "Register",
+    "hasAccount": "Already have an account?",
+    "login": "Login here"
+  },
+  "logout": {
+    "title": "Logging Out",
+    "success": "Successfully logged out",
+    "error": "Error logging out"
   }
 }

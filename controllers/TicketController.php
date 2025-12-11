@@ -88,9 +88,10 @@ class TicketController
                     'nuevoEstado' => $_POST['nuevoEstado'] ?? '',
                     'comentario' => $_POST['comentario'] ?? '',
                     'usuario_id' => (int)($_POST['usuario_id'] ?? 1),
+                    'rol_usuario' => $_POST['rol_usuario'] ?? '',
                 ];
                 
-                error_log("Parsed data - Estado: {$inputJSON->nuevoEstado}, Comentario: {$inputJSON->comentario}, Usuario: {$inputJSON->usuario_id}");
+                error_log("Parsed data - Estado: {$inputJSON->nuevoEstado}, Comentario: {$inputJSON->comentario}, Usuario: {$inputJSON->usuario_id}, Rol: {$inputJSON->rol_usuario}");
                 
                 // Manejar la subida de la imagen
                 if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {

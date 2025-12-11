@@ -284,7 +284,7 @@ class NotificacionModel
             $this->enlace->executeSQL_DML($sqlLog);
             
             // Obtener información del usuario
-            $sqlUsuario = "SELECT nombre, email FROM usuarios WHERE id = $usuario_id";
+            $sqlUsuario = "SELECT nombre, correo FROM usuarios WHERE id = $usuario_id";
             $usuario = $this->enlace->ExecuteSQL($sqlUsuario, 'asoc');
             
             if (empty($usuario)) {
@@ -315,8 +315,7 @@ class NotificacionModel
             
             return [
                 'success' => true,
-                'message' => 'Inicio de sesión registrado y notificado',
-                'log_id' => $this->enlace->lastInsertId()
+                'message' => 'Inicio de sesión registrado y notificado'
             ];
             
         } catch (Exception $e) {

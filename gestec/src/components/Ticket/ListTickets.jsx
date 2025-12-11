@@ -14,29 +14,35 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
 import Box from '@mui/material/Box';
 import AddIcon from '@mui/icons-material/Add';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../Auth/AuthContext';
 
 export default function ListTickets() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Variables de usuario y rol (NO editables en UI, solo en desarrollo)
-  const [usuarioId] = useState(1); // ID fijo del usuario logueado
-  const [rol, setRol] = useState('Administrador'); // Rol del usuario
+
+  // Mapear rol_id a nombre de rol
+  const getRoleName = (rol_id) => {
+    switch (rol_id) {
+      case 1: return 'Administrador';
+      case 2: return 'Cliente';
+      case 3: return 'Tecnico';
+      default: return 'Cliente';
+    }
+  };
 
   useEffect(() => {
+    if (!user) return;
+    
     let mounted = true;
     setLoading(true);
-    // El rol ya viene sin acentos desde el selector
-    TicketService.getAll(usuarioId, rol)
+    const rol = getRoleName(user.rol_id);
+    
+    TicketService.getAll(user.usuario_id || user.id, rol)
       .then((res) => {
         const list = Array.isArray(res) ? res : (res?.data || res || []);
         if (mounted) setData(list);
@@ -47,7 +53,7 @@ export default function ListTickets() {
       })
       .finally(() => setLoading(false));
     return () => (mounted = false);
-  }, [usuarioId, rol]);
+  }, [user]);
 
   const getPrioridadColor = (prioridad) => {
     switch (prioridad?.toLowerCase()) {
@@ -97,41 +103,20 @@ export default function ListTickets() {
             {t('ticket.list')}
           </Typography>
           
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              component={RouterLink}
-              to="/ticket/crear"
-            >
-              {t('ticket.new')}
-            </Button>
-            
-            {/* Selector de Rol (solo para desarrollo/pruebas) */}
-            <TextField
-              label={t('ticket.userId')}
-              value={usuarioId}
-              size="small"
-              disabled
-              sx={{ width: 120 }}
-            />
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel>{t('ticket.role')}</InputLabel>
-              <Select
-                value={rol}
-                label={t('ticket.role')}
-                onChange={(e) => setRol(e.target.value)}
-              >
-                <MenuItem value="Administrador">{t('ticket.administrator')}</MenuItem>
-                <MenuItem value="Cliente">{t('ticket.client')}</MenuItem>
-                <MenuItem value="Tecnico">{t('ticket.technicianRole')}</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            component={RouterLink}
+            to="/ticket/crear"
+          >
+            {t('ticket.new')}
+          </Button>
         </Box>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {t('ticket.showingFor')}: <strong>{rol === 'Tecnico' ? t('ticket.technicianRole') : rol === 'Administrador' ? t('ticket.administrator') : t('ticket.client')}</strong> (ID: {usuarioId})
+          {user?.rol_id === 1 && 'Mostrando todos los tickets (Administrador)'}
+          {user?.rol_id === 2 && 'Mostrando tus tickets (Cliente)'}
+          {user?.rol_id === 3 && 'Mostrando tickets asignados a ti (Técnico)'}
         </Typography>
 
         {loading ? (

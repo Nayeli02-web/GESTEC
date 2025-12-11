@@ -508,7 +508,7 @@ class TicketModel
     /**
      * Actualizar el estado de un ticket
      * @param int $id - ID del ticket
-     * @param object $datos - Objeto con nuevoEstado y comentario
+     * @param object $datos - Objeto con nuevoEstado, comentario, usuario_id, rol_usuario
      * @return array|null - Ticket actualizado o null si hay error
      */
     public function updateEstado($id, $datos)
@@ -518,6 +518,7 @@ class TicketModel
             $comentario = addslashes(trim($datos->comentario ?? ''));
             $usuario_id = (int)($datos->usuario_id ?? 0);
             $imagen_evidencia = $datos->imagen_evidencia ?? null;
+            $rol_usuario = isset($datos->rol_usuario) ? strtolower(trim($datos->rol_usuario)) : '';
 
             // Verificar si las columnas usuario_id e imagen_evidencia existen
             $checkColumnsSql = "SHOW COLUMNS FROM historial_tickets LIKE 'usuario_id'";
@@ -563,21 +564,42 @@ class TicketModel
                 throw new Exception('No se puede cambiar el estado de un ticket cerrado');
             }
 
-            // Validar flujo estricto de estados
-            $flujoEstados = [
-                'pendiente' => 'asignado',
-                'asignado' => 'en_proceso',
-                'en_proceso' => 'resuelto',
-                'resuelto' => 'cerrado'
-            ];
-
-            $estadoEsperado = $flujoEstados[$estadoActual] ?? null;
-            if ($nuevoEstado !== $estadoEsperado) {
-                throw new Exception('No se puede cambiar al estado ' . $nuevoEstado . ' desde ' . $estadoActual);
+            // *** VALIDACIÓN DE PERMISOS POR ROL ***
+            // Normalizar rol
+            $rol_usuario = str_replace(['técnico', 'tecnico'], 'tecnico', $rol_usuario);
+            
+            // RESTRICCIÓN 1: Solo CLIENTES y ADMINISTRADORES pueden cerrar tickets
+            if ($nuevoEstado === 'cerrado') {
+                if ($rol_usuario !== 'cliente' && $rol_usuario !== 'administrador') {
+                    throw new Exception('Solo los clientes y administradores pueden cerrar tickets');
+                }
+            }
+            
+            // RESTRICCIÓN 2: Solo TÉCNICOS y ADMINISTRADORES pueden cambiar estados intermedios
+            if (in_array($nuevoEstado, ['asignado', 'en_proceso', 'resuelto'])) {
+                if ($rol_usuario !== 'tecnico' && $rol_usuario !== 'administrador') {
+                    throw new Exception('Solo los técnicos y administradores pueden cambiar estados intermedios');
+                }
             }
 
-            // Validar que tenga técnico asignado (excepto si está en pendiente)
-            if ($estadoActual !== 'pendiente' && empty($ticketActual['tecnico_id'])) {
+            // Validar flujo de estados
+            // CLIENTES pueden cerrar tickets cuando están en "resuelto" (satisfechos con la solución)
+            // TÉCNICOS/ADMINISTRADORES siguen el flujo normal
+            $flujoEstados = [
+                'pendiente' => ['asignado'],  // Solo puede pasar a asignado
+                'asignado' => ['en_proceso'], // Solo puede pasar a en proceso
+                'en_proceso' => ['resuelto'], // Solo puede pasar a resuelto
+                'resuelto' => ['cerrado']     // Solo puede pasar a cerrado (CLIENTE confirma)
+            ];
+
+            $estadosPermitidos = $flujoEstados[$estadoActual] ?? [];
+            if (!in_array($nuevoEstado, $estadosPermitidos)) {
+                throw new Exception('No se puede cambiar al estado "' . $nuevoEstado . '" desde "' . $estadoActual . '". Estados permitidos: ' . implode(', ', $estadosPermitidos));
+            }
+
+            // Validar que tenga técnico asignado (excepto si está en pendiente o si es cliente cerrando ticket resuelto)
+            $esCierrePorCliente = ($estadoActual === 'resuelto' && $nuevoEstado === 'cerrado');
+            if ($estadoActual !== 'pendiente' && !$esCierrePorCliente && empty($ticketActual['tecnico_id'])) {
                 throw new Exception('El ticket debe tener un técnico asignado para avanzar');
             }
 

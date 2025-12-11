@@ -19,8 +19,19 @@ class NotificacionController
         try {
             $response = new Response();
             
-            // TODO: Obtener usuario_id de la sesión autenticada
-            $usuario_id = 1; // Por ahora hardcodeado
+            // Verificar sesión
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
+            // Obtener usuario_id de la sesión autenticada
+            if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id'])) {
+                $response->setResponse(false);
+                $response->setMessage('Usuario no autenticado');
+                return $response;
+            }
+            
+            $usuario_id = $_SESSION['usuario_id'] ?? $_SESSION['id'];
             
             $resultado = $this->notificacionModel->obtenerPorUsuario($usuario_id, false, 50);
             
@@ -51,8 +62,18 @@ class NotificacionController
         try {
             $response = new Response();
             
-            // TODO: Obtener usuario_id de la sesión autenticada
-            $usuario_id = 1;
+            // Verificar sesión
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
+            if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id'])) {
+                $response->setResponse(false);
+                $response->setMessage('Usuario no autenticado');
+                return $response;
+            }
+            
+            $usuario_id = $_SESSION['usuario_id'] ?? $_SESSION['id'];
             
             $resultado = $this->notificacionModel->obtenerPorUsuario($usuario_id, true, 50);
             
@@ -83,8 +104,18 @@ class NotificacionController
         try {
             $response = new Response();
             
-            // TODO: Obtener usuario_id de la sesión autenticada
-            $usuario_id = 1;
+            // Verificar sesión
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
+            if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id'])) {
+                $response->setResponse(false);
+                $response->setMessage('Usuario no autenticado');
+                return $response;
+            }
+            
+            $usuario_id = $_SESSION['usuario_id'] ?? $_SESSION['id'];
             
             $resultado = $this->notificacionModel->contarNoLeidas($usuario_id);
             
@@ -118,9 +149,18 @@ class NotificacionController
         try {
             $response = new Response();
             
-            // TODO: Obtener usuario_id de la sesión autenticada
-            // Por ahora usa usuario hardcoded (cambiar por $_SESSION['usuario_id'])
-            $usuario_id = 1;
+            // Verificar sesión
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
+            if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id'])) {
+                $response->setResponse(false);
+                $response->setMessage('Usuario no autenticado');
+                return $response;
+            }
+            
+            $usuario_id = $_SESSION['usuario_id'] ?? $_SESSION['id'];
             
             // VALIDACIÓN: ID de notificación válido
             if (empty($notificacion_id) || !is_numeric($notificacion_id)) {
@@ -188,9 +228,18 @@ class NotificacionController
         try {
             $response = new Response();
             
-            // TODO: Obtener usuario_id de la sesión autenticada
-            // Por ahora usa usuario hardcoded (cambiar por $_SESSION['usuario_id'])
-            $usuario_id = 1;
+            // Verificar sesión
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
+            if (!isset($_SESSION['usuario_id']) && !isset($_SESSION['id'])) {
+                $response->setResponse(false);
+                $response->setMessage('Usuario no autenticado');
+                return $response;
+            }
+            
+            $usuario_id = $_SESSION['usuario_id'] ?? $_SESSION['id'];
             
             // VALIDACIÓN: Usuario válido
             if (empty($usuario_id)) {
